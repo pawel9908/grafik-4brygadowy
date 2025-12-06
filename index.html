@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
   <meta charset="UTF-8" />
   <title>Generator grafiku 4-brygadowego (offline)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
   <meta name="theme-color" content="#1f2937" />
   <link rel="manifest" href="manifest.webmanifest" />
@@ -11,6 +12,10 @@
   <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
@@ -21,32 +26,36 @@
     .app-wrapper {
       max-width: 900px;
       margin: 10px auto 20px;
-      padding: 0 10px;
+      padding: 0 10px 60px;
     }
 
     .toggle-btn {
-      margin: 8px 0;
-      padding: 8px 14px;
+      position: sticky;
+      bottom: 10px;
+      width: 100%;
+      margin: 12px 0 0;
+      padding: 10px 16px;
       border-radius: 999px;
       border: none;
       background: #2563eb;
       color: white;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
       cursor: pointer;
-      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
     }
 
     .toggle-btn span.icon {
-      font-size: 0.9rem;
+      font-size: 1rem;
     }
 
     .generator-container {
       border-radius: 16px;
-      padding: 18px 20px 20px;
+      padding: 18px 16px 18px;
       background: linear-gradient(135deg, #f9fafb 0%, #eef2ff 100%);
       box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
       border: 1px solid rgba(148, 163, 184, 0.4);
@@ -110,10 +119,10 @@
     }
 
     .wejsciowy-wiersz {
-      background: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.9);
       border-radius: 10px;
       padding: 8px 10px;
-      border: 1px solid rgba(209, 213, 219, 0.8);
+      border: 1px solid rgba(209, 213, 219, 0.9);
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
@@ -123,6 +132,7 @@
       display: flex;
       flex-direction: column;
       flex: 1 1 120px;
+      min-width: 0;
     }
 
     .field label {
@@ -142,6 +152,7 @@
       background: #f9fafb;
       transition: border-color 0.15s ease, box-shadow 0.15s ease,
         background-color 0.15s ease;
+      width: 100%;
     }
 
     .field input[type="date"]:focus,
@@ -151,8 +162,14 @@
       background: #ffffff;
     }
 
-    .btn-primary {
+    .buttons-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
       margin-top: 12px;
+    }
+
+    .btn-primary {
       padding: 7px 14px;
       border-radius: 10px;
       border: none;
@@ -162,6 +179,7 @@
       font-size: 0.9rem;
       cursor: pointer;
       box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
+      flex-shrink: 0;
     }
 
     .btn-primary:active {
@@ -169,8 +187,25 @@
       box-shadow: 0 2px 6px rgba(79, 70, 229, 0.4);
     }
 
-    .btn-inline {
-      margin-left: 8px;
+    .btn-secondary {
+      padding: 7px 14px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      background: white;
+      font-size: 0.85rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .btn-reset {
+      border-color: #fecaca;
+      background: #fee2e2;
+      color: #b91c1c;
+      font-weight: 600;
+    }
+
+    .btn-reset:hover {
+      background: #fecaca;
     }
 
     .month-nav {
@@ -206,16 +241,20 @@
     }
 
     .calendar-wrapper {
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.95);
       border-radius: 14px;
       padding: 10px;
       border: 1px solid rgba(209, 213, 219, 0.9);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .kalendarz {
       width: 100%;
+      min-width: 100%;
       border-collapse: collapse;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
+      table-layout: fixed;
     }
 
     .kalendarz thead th {
@@ -232,7 +271,7 @@
       border-bottom: 1px solid #f3f4f6;
       border-right: 1px solid #f3f4f6;
       vertical-align: top;
-      padding: 4px;
+      padding: 2px;
     }
 
     .kalendarz tr td:last-child {
@@ -252,28 +291,29 @@
     .cell-content {
       height: 100%;
       border-radius: 8px;
-      padding: 4px;
+      padding: 3px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 1px;
+      word-break: break-word;
     }
 
     .data {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 700;
     }
 
     .kod {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 600;
     }
 
     .nazwa {
-      font-size: 0.72rem;
+      font-size: 0.7rem;
     }
 
     .notka {
-      margin-top: 2px;
+      margin-top: 1px;
       font-size: 0.65rem;
       color: #111827;
     }
@@ -442,35 +482,6 @@
       margin-top: 10px;
     }
 
-	.btn-secondary {
-	  padding: 7px 14px;
-	  border-radius: 10px;
-	  border: 1px solid #d1d5db;
-	  background: #ffffff;
-	  color: #374151;
-	  font-weight: 500;
-	  font-size: 0.9rem;
-	  cursor: pointer;
-	  box-shadow: 0 2px 6px rgba(148, 163, 184, 0.35);
-	}
-
-	.btn-secondary:active {
-	  transform: translateY(1px);
-	  box-shadow: 0 1px 3px rgba(148, 163, 184, 0.35);
-	}
-
-#step1Section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-#step1Section > .btn-primary,
-#step1Section > .btn-secondary {
-  align-self: flex-start;
-  margin-top: 4px;
-}
-
     .btn-save {
       padding: 6px 12px;
       border-radius: 8px;
@@ -484,7 +495,7 @@
 
     @media (max-width: 480px) {
       .generator-container {
-        padding: 14px 12px 15px;
+        padding: 14px 10px 14px;
       }
       .generator-header {
         flex-direction: column;
@@ -492,6 +503,9 @@
       }
       .badge-cycle {
         align-self: flex-start;
+      }
+      .kalendarz td {
+        height: 60px;
       }
     }
   </style>
@@ -598,13 +612,15 @@
           </div>
         </div>
 
-        <button id="btnGeneruj" class="btn-primary">Generuj grafik</button>
-        <button id="btnRecalc" class="btn-primary btn-inline" style="display:none;">
-          Przelicz grafik ponownie
-        </button>
-<button id="btnReset" class="btn-secondary btn-inline">
-  Resetuj grafik (zacznij od nowa)
-</button>
+        <div class="buttons-row">
+          <button id="btnGeneruj" class="btn-primary">Generuj grafik</button>
+          <button id="btnRecalc" class="btn-primary" style="display:none;">
+            Przelicz grafik ponownie
+          </button>
+          <button id="btnReset" class="btn-secondary btn-reset">
+            Resetuj grafik (od zera)
+          </button>
+        </div>
       </div>
 
       <div id="calendarSection" class="section" style="display:none;">
@@ -1158,13 +1174,11 @@
 
       renderCalendar();
     }
-function resetGrafik() {
-  // usuwamy zapisany grafik i wszystkie notatki
-  localStorage.removeItem(STORAGE_KEY);
 
-  // przeładowujemy stronę – wracasz do stanu "świeżo po otwarciu"
-  location.reload();
-}
+    function resetGrafik() {
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
 
     // ---------- INIT + PWA ----------
     document.addEventListener("DOMContentLoaded", () => {
@@ -1177,10 +1191,10 @@ function resetGrafik() {
       const dniWrapper = document.getElementById("dniWejscioweWrapper");
       const btnGeneruj = document.getElementById("btnGeneruj");
       const btnRecalc = document.getElementById("btnRecalc");
+      const btnReset = document.getElementById("btnReset");
       const calendarSection = document.getElementById("calendarSection");
       const emptyInfo = document.getElementById("emptyInfo");
-	const btnReset = document.getElementById("btnReset");
-	
+
       directionSelect.value = state.direction || "321";
 
       for (let i = 0; i < 4; i++) {
@@ -1203,9 +1217,7 @@ function resetGrafik() {
         generator.style.display = "block";
         toggleText.textContent = "Ukryj generator grafiku";
 
-        // ukryj 4 dni, pokaż przycisk przeliczania
         hideInputDaysAfterFirstGeneration();
-
         renderCalendar();
       } else {
         generatorVisible = false;
@@ -1226,7 +1238,7 @@ function resetGrafik() {
 
       btnGeneruj.addEventListener("click", firstGeneration);
       btnRecalc.addEventListener("click", recalcGeneration);
-		  btnReset.addEventListener("click", resetGrafik);
+      btnReset.addEventListener("click", resetGrafik);
 
       document.getElementById("btnPrevMonth").addEventListener("click", () => {
         if (visibleMonth === 0) {
@@ -1265,15 +1277,16 @@ function resetGrafik() {
         .getElementById("modalClearBtn")
         .addEventListener("click", clearDayModal);
 
-		if (
-		  "serviceWorker" in navigator &&
-		  (window.location.protocol === "https:" || window.location.hostname === "localhost")
-		) {
-		  navigator.serviceWorker.register("sw.js").catch((err) => {
-			console.log("SW register error:", err);
-		  });
-		}
-
+      // Rejestracja SW tylko na https / localhost
+      if (
+        "serviceWorker" in navigator &&
+        (window.location.protocol === "https:" ||
+          window.location.hostname === "localhost")
+      ) {
+        navigator.serviceWorker.register("sw.js").catch((err) => {
+          console.log("SW register error:", err);
+        });
+      }
     });
   </script>
 </body>
