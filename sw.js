@@ -1,6 +1,6 @@
 const CACHE_NAME = "grafik-cache-v1";
 const ASSETS = [
-  "grafik.html",
+  "index.html",
   "manifest.webmanifest",
   "icon-192.png",
   "icon-512.png"
@@ -30,9 +30,8 @@ self.addEventListener("fetch", (event) => {
       return (
         cached ||
         fetch(event.request).catch(() => {
-          // fallback dla grafik.html przy braku sieci
           if (event.request.mode === "navigate") {
-            return caches.match("grafik.html");
+            return caches.match("index.html");
           }
         })
       );

@@ -1,7 +1,7 @@
 {
   "name": "Grafik 4-brygadowy",
   "short_name": "Grafik",
- "start_url": "/grafik-4brygadowy/"
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#1f2937",
