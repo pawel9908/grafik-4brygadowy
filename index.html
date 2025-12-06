@@ -442,14 +442,34 @@
       margin-top: 10px;
     }
 
-    .btn-secondary {
-      padding: 6px 10px;
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-      background: white;
-      font-size: 0.85rem;
-      cursor: pointer;
-    }
+	.btn-secondary {
+	  padding: 7px 14px;
+	  border-radius: 10px;
+	  border: 1px solid #d1d5db;
+	  background: #ffffff;
+	  color: #374151;
+	  font-weight: 500;
+	  font-size: 0.9rem;
+	  cursor: pointer;
+	  box-shadow: 0 2px 6px rgba(148, 163, 184, 0.35);
+	}
+
+	.btn-secondary:active {
+	  transform: translateY(1px);
+	  box-shadow: 0 1px 3px rgba(148, 163, 184, 0.35);
+	}
+
+#step1Section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#step1Section > .btn-primary,
+#step1Section > .btn-secondary {
+  align-self: flex-start;
+  margin-top: 4px;
+}
 
     .btn-save {
       padding: 6px 12px;
@@ -582,9 +602,9 @@
         <button id="btnRecalc" class="btn-primary btn-inline" style="display:none;">
           Przelicz grafik ponownie
         </button>
-		<button id="btnReset" class="btn-secondary btn-inline">
-		  Resetuj grafik (zacznij od nowa)
-		</button>
+<button id="btnReset" class="btn-secondary btn-inline">
+  Resetuj grafik (zacznij od nowa)
+</button>
       </div>
 
       <div id="calendarSection" class="section" style="display:none;">
