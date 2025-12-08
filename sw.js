@@ -1,8 +1,8 @@
-const PRECACHE = "grafik-precache-v4";
-const RUNTIME = "grafik-runtime-v4";
+// ZMIEŃ wersję przy każdym większym deployu
+const CACHE_VERSION = "v2";
+const CACHE_NAME = `grafik-cache-${CACHE_VERSION}`;
 
-const PRECACHE_ASSETS = [
-  "./",
+const ASSETS = [
   "index.html",
   "style.css",
   "app.js",
@@ -11,57 +11,59 @@ const PRECACHE_ASSETS = [
   "icon-512.png",
 ];
 
-// INSTALL – pre-cache
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(PRECACHE).then((cache) => cache.addAll(PRECACHE_ASSETS))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
+
+  // od razu aktywuj nowego SW (bez czekania)
   self.skipWaiting();
 });
 
-// ACTIVATE – czyścimy stare cache
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(
-          keys
-            .filter((key) => ![PRECACHE, RUNTIME].includes(key))
-            .map((key) => caches.delete(key))
-        )
-      )
+    (async () => {
+      // skasuj stare cache
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter(
+            (key) => key.startsWith("grafik-cache-") && key !== CACHE_NAME
+          )
+          .map((key) => caches.delete(key))
+      );
+
+      // przejmij od razu kontrolę nad wszystkimi klientami
+      await self.clients.claim();
+
+      // powiadom wszystkie okna/apki że jest nowa wersja
+      const clients = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      for (const client of clients) {
+        client.postMessage({ type: "NEW_VERSION_AVAILABLE" });
+      }
+    })()
   );
-  self.clients.claim();
 });
 
-// FETCH – offline-first (stale-while-revalidate)
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
+  const { request } = event;
 
-  const request = event.request;
+  // tylko GET
+  if (request.method !== "GET") return;
 
   event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      const fetchPromise = fetch(request)
-        .then((networkResponse) => {
-          // aktualizujemy cache w tle
-          const clone = networkResponse.clone();
-          caches.open(RUNTIME).then((cache) => {
-            cache.put(request, clone);
-          });
-          return networkResponse;
-        })
-        .catch(() => {
-          // offline + brak w sieci
-          if (cachedResponse) return cachedResponse;
-          if (request.mode === "navigate") {
-            return caches.match("index.html");
-          }
-        });
+    caches.match(request).then((cached) => {
+      if (cached) return cached;
 
-      // jeśli mamy coś w cache → zwracamy od razu
-      return cachedResponse || fetchPromise;
+      return fetch(request).catch(() => {
+        // gdy offline i ktoś próbuje wejść na stronę
+        if (request.mode === "navigate") {
+          return caches.match("index.html");
+        }
+      });
     })
   );
 });

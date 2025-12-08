@@ -585,6 +585,59 @@ body {
   transform: translateY(1px);
   box-shadow: 0 2px 6px rgba(15, 118, 110, 0.35);
 }
+.update-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  max-width: 420px;
+  width: calc(100% - 20px);
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.96);
+  color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.6);
+  z-index: 60;
+  font-size: 0.8rem;
+}
+
+.update-banner-text {
+  flex: 1;
+}
+
+.update-banner-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: #22c55e;
+  color: #022c22;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.update-banner-btn:active {
+  transform: translateY(1px);
+}
+
+/* lepsze zachowanie na bardzo małych ekranach */
+@media (max-width: 480px) {
+  .update-banner {
+    bottom: 8px;
+    padding: 8px;
+    font-size: 0.78rem;
+  }
+
+  .update-banner-btn {
+    padding: 6px 8px;
+    font-size: 0.78rem;
+  }
+}
 
 @media (max-width: 480px) {
   .generator-container {

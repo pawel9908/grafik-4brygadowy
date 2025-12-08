@@ -963,6 +963,18 @@ function resetGrafik() {
   localStorage.removeItem(STORAGE_KEY);
   location.reload();
 }
+function showUpdateBanner() {
+  const banner = document.getElementById("updateBanner");
+  const btn = document.getElementById("updateReloadBtn");
+  if (!banner || !btn) return;
+
+  banner.style.display = "flex";
+
+  btn.onclick = () => {
+    // Odśwież stronę, żeby wczytać nową wersję z nowym SW i cache
+    window.location.reload();
+  };
+}
 
 // ---------- INIT + PWA ----------
 document.addEventListener("DOMContentLoaded", () => {
@@ -1056,8 +1068,22 @@ document.addEventListener("DOMContentLoaded", () => {
     (window.location.protocol === "https:" ||
       window.location.hostname === "localhost")
   ) {
-    navigator.serviceWorker.register("sw.js").catch((err) => {
-      console.log("SW register error:", err);
+    navigator.serviceWorker
+      .register("sw.js")
+      .then((reg) => {
+        console.log("SW registered:", reg.scope);
+      })
+      .catch((err) => {
+        console.log("SW register error:", err);
+      });
+
+    // nasłuchujemy komunikatów z SW (np. NEW_VERSION_AVAILABLE)
+    navigator.serviceWorker.addEventListener("message", (event) => {
+      if (!event.data || !event.data.type) return;
+
+      if (event.data.type === "NEW_VERSION_AVAILABLE") {
+        showUpdateBanner();
+      }
     });
   }
 });
