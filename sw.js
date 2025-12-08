@@ -1,5 +1,5 @@
 // ZMIEŃ wersję przy każdym większym deployu
-const CACHE_VERSION = "v3";
+const CACHE_VERSION = "v5";
 const CACHE_NAME = `grafik-cache-${CACHE_VERSION}`;
 
 const ASSETS = [
