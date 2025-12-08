@@ -1,1299 +1,287 @@
-
 <!DOCTYPE html>
 <html lang="pl">
-<head>
-  <meta charset="UTF-8" />
-  <title>Generator grafiku 4-brygadowego (offline)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <!-- iOS PWA -->
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Grafik" />
-<link rel="apple-touch-icon" href="icon-192.png" />
-
-  <meta name="theme-color" content="#1f2937" />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
-
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
-      background: #e5e7eb;
-    }
-
-    .app-wrapper {
-      max-width: 900px;
-      margin: 10px auto 20px;
-      padding: 0 10px 60px;
-    }
-
-    .toggle-btn {
-      position: sticky;
-      bottom: 10px;
-      width: 100%;
-      margin: 12px 0 0;
-      padding: 10px 16px;
-      border-radius: 999px;
-      border: none;
-      background: #2563eb;
-      color: white;
-      font-weight: 600;
-      font-size: 0.95rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
-    }
-
-    .toggle-btn span.icon {
-      font-size: 1rem;
-    }
-
-    .generator-container {
-      border-radius: 16px;
-      padding: 18px 16px 18px;
-      background: linear-gradient(135deg, #f9fafb 0%, #eef2ff 100%);
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-    }
-
-    .generator-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .generator-header h2 {
-      margin: 0;
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #111827;
-    }
-
-    .subtitle {
-      margin: 2px 0 0;
-      font-size: 0.85rem;
-      color: #6b7280;
-    }
-
-    .badge-cycle {
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      background: #1d4ed8;
-      color: #eff6ff;
-      letter-spacing: 0.03em;
-      white-space: nowrap;
-    }
-
-    .section {
-      margin-top: 16px;
-      padding-top: 12px;
-      border-top: 1px dashed rgba(148, 163, 184, 0.6);
-    }
-
-    .section-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin: 0 0 6px;
-      color: #111827;
-    }
-
-    .hint {
-      font-size: 0.82rem;
-      color: #4b5563;
-      margin-bottom: 10px;
-    }
-
-    .dni-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 10px;
-    }
-
-    .wejsciowy-wiersz {
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 10px;
-      padding: 8px 10px;
-      border: 1px solid rgba(209, 213, 219, 0.9);
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      flex: 1 1 120px;
-      min-width: 0;
-    }
-
-    .field label {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 2px;
-    }
-
-    .field input[type="date"],
-    .field select {
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-      padding: 4px 8px;
-      font-size: 0.85rem;
-      outline: none;
-      background: #f9fafb;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease,
-        background-color 0.15s ease;
-      width: 100%;
-    }
-
-    .field input[type="date"]:focus,
-    .field select:focus {
-      border-color: #4f46e5;
-      box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.3);
-      background: #ffffff;
-    }
-
-    .buttons-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    .btn-primary {
-      padding: 7px 14px;
-      border-radius: 10px;
-      border: none;
-      background: #4f46e5;
-      color: white;
-      font-weight: 600;
-      font-size: 0.9rem;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
-      flex-shrink: 0;
-    }
-
-    .btn-primary:active {
-      transform: translateY(1px);
-      box-shadow: 0 2px 6px rgba(79, 70, 229, 0.4);
-    }
-
-    .btn-secondary {
-      padding: 7px 14px;
-      border-radius: 10px;
-      border: 1px solid #d1d5db;
-      background: white;
-      font-size: 0.85rem;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .btn-reset {
-      border-color: #fecaca;
-      background: #fee2e2;
-      color: #b91c1c;
-      font-weight: 600;
-    }
-
-    .btn-reset:hover {
-      background: #fecaca;
-    }
-
-    .month-nav {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 10px;
-      margin-top: 4px;
-    }
-
-    .nav-btn {
-      border-radius: 999px;
-      border: 1px solid #d1d5db;
-      background: white;
-      padding: 4px 8px;
-      cursor: pointer;
-      transition: background-color 0.15s ease, transform 0.1s ease,
-        box-shadow 0.15s ease;
-    }
-
-    .nav-btn:hover {
-      background: #eef2ff;
-      box-shadow: 0 2px 8px rgba(148, 163, 184, 0.6);
-      transform: translateY(-1px);
-    }
-
-    .month-label {
-      font-weight: 600;
-      font-size: 0.95rem;
-      color: #111827;
-      text-transform: capitalize;
-    }
-
-    .calendar-wrapper {
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 14px;
-      padding: 10px;
-      border: 1px solid rgba(209, 213, 219, 0.9);
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .kalendarz {
-      width: 100%;
-      min-width: 100%;
-      border-collapse: collapse;
-      font-size: 0.78rem;
-      table-layout: fixed;
-    }
-
-    .kalendarz thead th {
-      padding: 6px 0;
-      text-align: center;
-      font-weight: 600;
-      color: #4b5563;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .kalendarz td {
-      width: 14.28%;
-      height: 70px;
-      border-bottom: 1px solid #f3f4f6;
-      border-right: 1px solid #f3f4f6;
-      vertical-align: top;
-      padding: 2px;
-    }
-
-    .kalendarz tr td:last-child {
-      border-right: none;
-    }
-
-    .pusta {
-      background: #f9fafb;
-    }
-
-    .komorka {
-      border-radius: 8px;
-      overflow: hidden;
-      cursor: pointer;
-    }
-
-    .cell-content {
-      height: 100%;
-      border-radius: 8px;
-      padding: 3px;
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-      word-break: break-word;
-    }
-
-    .data {
-      font-size: 0.78rem;
-      font-weight: 700;
-    }
-
-    .kod {
-      font-size: 0.72rem;
-      font-weight: 600;
-    }
-
-    .nazwa {
-      font-size: 0.7rem;
-    }
-
-    .notka {
-      margin-top: 1px;
-      font-size: 0.65rem;
-      color: #111827;
-    }
-
-    .zmiana-I .cell-content {
-      background: #dbeafe;
-      color: #1e3a8a;
-    }
-
-    .zmiana-II .cell-content {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
-    .zmiana-N .cell-content {
-      background: #ede9fe;
-      color: #4c1d95;
-    }
-
-    .zmiana-W .cell-content {
-      background: #e5e7eb;
-      color: #374151;
-    }
-
-    .zmiana-L4 .cell-content {
-      background: #fee2e2;
-      color: #7f1d1d;
-    }
-
-    .zmiana-UW .cell-content {
-      background: #dcfce7;
-      color: #14532d;
-    }
-
-    .zmiana-INNE .cell-content {
-      background: #f3e8ff;
-      color: #581c87;
-    }
-
-    .legenda {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
-      font-size: 0.75rem;
-    }
-
-    .legend-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      color: #4b5563;
-    }
-
-    .legend-color {
-      width: 14px;
-      height: 14px;
-      border-radius: 4px;
-      border: 1px solid rgba(148, 163, 184, 0.8);
-    }
-
-    .legend-color.zmiana-I {
-      background: #dbeafe;
-    }
-    .legend-color.zmiana-II {
-      background: #fef3c7;
-    }
-    .legend-color.zmiana-N {
-      background: #ede9fe;
-    }
-    .legend-color.zmiana-W {
-      background: #e5e7eb;
-    }
-    .legend-color.zmiana-L4 {
-      background: #fee2e2;
-    }
-    .legend-color.zmiana-UW {
-      background: #dcfce7;
-    }
-
-    .empty-info {
-      font-size: 0.85rem;
-      color: #4b5563;
-    }
-
-    /* MODAL EDYCJI DNIA */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.65);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 50;
-      padding: 10px;
-    }
-
-    .modal-backdrop.show {
-      display: flex;
-    }
-
-    .modal {
-      max-width: 360px;
-      width: 100%;
-      background: #f9fafb;
-      border-radius: 16px;
-      box-shadow: 0 15px 45px rgba(15, 23, 42, 0.5);
-      padding: 16px 16px 14px;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
-
-    .modal-title {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #111827;
-    }
-
-    .modal-close {
-      border: none;
-      background: transparent;
-      font-size: 1.1rem;
-      cursor: pointer;
-      color: #6b7280;
-    }
-
-    .modal-body {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      font-size: 0.85rem;
-    }
-
-    .modal-body .field {
-      flex: 1;
-    }
-
-    .modal-body textarea {
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-      padding: 6px 8px;
-      font-size: 0.85rem;
-      min-height: 60px;
-      resize: vertical;
-      background: #f9fafb;
-    }
-
-    .modal-body textarea:focus {
-      outline: none;
-      border-color: #4f46e5;
-      box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.3);
-      background: #ffffff;
-    }
-
-    .modal-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .btn-save {
-      padding: 6px 12px;
-      border-radius: 8px;
-      border: none;
-      background: #16a34a;
-      color: white;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    @media (max-width: 480px) {
-      .generator-container {
-        padding: 14px 10px 14px;
-      }
-      .generator-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .badge-cycle {
-        align-self: flex-start;
-      }
-      .kalendarz td {
-        height: 60px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="app-wrapper">
-    <div id="generator" class="generator-container">
-      <div class="generator-header">
-        <div>
-          <h2>Generator grafiku pracy</h2>
-          <p class="subtitle">System 4-brygadowy – cykl 16-dniowy</p>
-        </div>
-        <span class="badge-cycle">I / II / N / W</span>
-      </div>
-
-      <div class="section" id="step1Section">
-        <h3 class="section-title">Ustawienia grafiku</h3>
-        <p class="hint">
-          Na początku ustaw 4 znane dni oraz kierunek zmian. Po wygenerowaniu grafiku
-          daty startowe zostaną ukryte, ale dalej możesz zmieniać kierunek i
-          przeliczać grafik. Notatki zawsze zostają.
-        </p>
-
-        <!-- Kierunek zmian -->
-        <div class="field" style="max-width: 260px; margin-bottom: 8px;">
-          <label for="direction">Kierunek zmian</label>
-          <select id="direction">
-            <option value="321">3 → 2 → 1 (N → II → I)</option>
-            <option value="123">1 → 2 → 3 (I → II → N)</option>
-          </select>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Generator grafiku 4-brygadowego (offline)</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+
+    <!-- iOS PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Grafik" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+
+    <meta name="theme-color" content="#1f2937" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+
+    <!-- STYLES -->
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-wrapper">
+      <div id="generator" class="generator-container">
+        <div class="generator-header">
+          <div>
+            <h2>Generator grafiku pracy</h2>
+            <p class="subtitle">System 4-brygadowy – cykl 16-dniowy</p>
+          </div>
+          <span class="badge-cycle">I / II / N / W</span>
         </div>
 
-        <!-- 4 dni wejściowe (do ukrycia po wygenerowaniu) -->
-        <div id="dniWejscioweWrapper">
-          <h4 class="section-title" style="margin-top:8px;">4 znane dni (tylko przy pierwszym ustawieniu)</h4>
-          <div class="dni-grid">
-            <div class="wejsciowy-wiersz" data-index="0">
-              <div class="field">
-                <label>Data #1</label>
-                <input type="date" id="data-0" />
-              </div>
-              <div class="field">
-                <label>Typ zmiany</label>
-                <select id="typ-0">
-                  <option value="">— wybierz —</option>
-                  <option value="I">I</option>
-                  <option value="II">II</option>
-                  <option value="N">N</option>
-                  <option value="W">W</option>
-                </select>
-              </div>
-            </div>
+        <div id="calendarSection" class="section" style="display: none">
+          <h3 class="section-title">Kalendarz</h3>
 
-            <div class="wejsciowy-wiersz" data-index="1">
-              <div class="field">
-                <label>Data #2</label>
-                <input type="date" id="data-1" />
-              </div>
-              <div class="field">
-                <label>Typ zmiany</label>
-                <select id="typ-1">
-                  <option value="">— wybierz —</option>
-                  <option value="I">I</option>
-                  <option value="II">II</option>
-                  <option value="N">N</option>
-                  <option value="W">W</option>
-                </select>
-              </div>
-            </div>
+          <div class="month-nav">
+            <button id="btnPrevMonth" class="nav-btn">◀</button>
+            <span id="monthLabel" class="month-label"></span>
+            <button id="btnNextMonth" class="nav-btn">▶</button>
+          </div>
 
-            <div class="wejsciowy-wiersz" data-index="2">
-              <div class="field">
-                <label>Data #3</label>
-                <input type="date" id="data-2" />
-              </div>
-              <div class="field">
-                <label>Typ zmiany</label>
-                <select id="typ-2">
-                  <option value="">— wybierz —</option>
-                  <option value="I">I</option>
-                  <option value="II">II</option>
-                  <option value="N">N</option>
-                  <option value="W">W</option>
-                </select>
-              </div>
-            </div>
+          <div class="calendar-wrapper">
+            <table class="kalendarz">
+              <thead>
+                <tr>
+                  <th>Pn</th>
+                  <th>Wt</th>
+                  <th>Śr</th>
+                  <th>Cz</th>
+                  <th>Pt</th>
+                  <th>So</th>
+                  <th>Nd</th>
+                </tr>
+              </thead>
+              <tbody id="calendarBody"></tbody>
+            </table>
 
-            <div class="wejsciowy-wiersz" data-index="3">
-              <div class="field">
-                <label>Data #4</label>
-                <input type="date" id="data-3" />
-              </div>
-              <div class="field">
-                <label>Typ zmiany</label>
-                <select id="typ-3">
-                  <option value="">— wybierz —</option>
-                  <option value="I">I</option>
-                  <option value="II">II</option>
-                  <option value="N">N</option>
-                  <option value="W">W</option>
-                </select>
-              </div>
+            <div class="legenda">
+              <span class="legend-item">
+                <span class="legend-color zmiana-I"></span> I zmiana
+              </span>
+              <span class="legend-item">
+                <span class="legend-color zmiana-II"></span> II zmiana
+              </span>
+              <span class="legend-item">
+                <span class="legend-color zmiana-N"></span> III zmiana
+              </span>
+              <span class="legend-item">
+                <span class="legend-color zmiana-W"></span> Wolne
+              </span>
+              <span class="legend-item">
+                <span class="legend-color zmiana-L4"></span> L4
+              </span>
+              <span class="legend-item">
+                <span class="legend-color zmiana-UW"></span> Urlop (UW)
+              </span>
             </div>
           </div>
         </div>
-
-        <div class="buttons-row">
-          <button id="btnGeneruj" class="btn-primary">Generuj grafik</button>
-          <button id="btnRecalc" class="btn-primary" style="display:none;">
-            Przelicz grafik ponownie
-          </button>
-          <button id="btnReset" class="btn-secondary btn-reset">
-            Resetuj grafik (od zera)
-          </button>
-        </div>
-      </div>
-
-      <div id="calendarSection" class="section" style="display:none;">
-        <h3 class="section-title">Kalendarz</h3>
-
-        <div class="month-nav">
-          <button id="btnPrevMonth" class="nav-btn">◀</button>
-          <span id="monthLabel" class="month-label"></span>
-          <button id="btnNextMonth" class="nav-btn">▶</button>
+        <div id="monthSummary" class="month-summary">
+          <h4 class="section-title">Podsumowanie miesiąca</h4>
+          <div id="monthSummaryContent" class="month-summary-content">
+            Brak danych – wygeneruj grafik.
+          </div>
         </div>
 
-        <div class="calendar-wrapper">
-          <table class="kalendarz">
-            <thead>
-              <tr>
-                <th>Pn</th>
-                <th>Wt</th>
-                <th>Śr</th>
-                <th>Cz</th>
-                <th>Pt</th>
-                <th>So</th>
-                <th>Nd</th>
-              </tr>
-            </thead>
-            <tbody id="calendarBody"></tbody>
-          </table>
+        <div class="year-summary-actions">
+          <button id="btnYearSummary" class="btn-secondary btn-year-summary">
+            Podsumowanie roku
+          </button>
+        </div>
 
-          <div class="legenda">
-            <span class="legend-item">
-              <span class="legend-color zmiana-I"></span> I zmiana
-            </span>
-            <span class="legend-item">
-              <span class="legend-color zmiana-II"></span> II zmiana
-            </span>
-            <span class="legend-item">
-              <span class="legend-color zmiana-N"></span> Nocka (3 zmiana)
-            </span>
-            <span class="legend-item">
-              <span class="legend-color zmiana-W"></span> Wolne
-            </span>
-            <span class="legend-item">
-              <span class="legend-color zmiana-L4"></span> L4
-            </span>
-            <span class="legend-item">
-              <span class="legend-color zmiana-UW"></span> Urlop (UW)
-            </span>
+        <!-- NOWA SEKCJA -->
+        <div id="yearSummary" class="year-summary" style="display: none">
+          <h4 class="section-title">Podsumowanie roku</h4>
+          <div id="yearSummaryContent" class="year-summary-content"></div>
+        </div>
+
+        <div id="emptyInfo" class="section empty-info">
+          <p>
+            Ustaw powyżej 4 dni i kliknij
+            <strong>„Generuj grafik”</strong>, aby zobaczyć kalendarz.
+          </p>
+        </div>
+        <div class="section" id="step1Section">
+          <h3 class="section-title">Ustawienia grafiku</h3>
+          <p class="hint">
+            Na początku ustaw 4 znane dni oraz kierunek zmian. Po wygenerowaniu
+            grafiku daty startowe zostaną ukryte, ale dalej możesz zmieniać
+            kierunek i przeliczać grafik. Notatki zawsze zostają.
+          </p>
+
+          <!-- Kierunek zmian -->
+          <div class="field" style="max-width: 260px; margin-bottom: 8px">
+            <label for="direction">Kierunek zmian</label>
+            <select id="direction">
+              <option value="321">3 → 2 → 1 (N → II → I)</option>
+              <option value="123">1 → 2 → 3 (I → II → N)</option>
+            </select>
+          </div>
+
+          <!-- 4 dni wejściowe (do ukrycia po wygenerowaniu) -->
+          <div id="dniWejscioweWrapper">
+            <h4 class="section-title" style="margin-top: 8px">
+              4 znane dni (tylko przy pierwszym ustawieniu)
+            </h4>
+            <div class="dni-grid">
+              <div class="wejsciowy-wiersz" data-index="0">
+                <div class="field">
+                  <label>Data #1</label>
+                  <input type="date" id="data-0" />
+                </div>
+                <div class="field">
+                  <label>Typ zmiany</label>
+                  <select id="typ-0">
+                    <option value="">— wybierz —</option>
+                    <option value="I">I</option>
+                    <option value="II">II</option>
+                    <option value="N">N</option>
+                    <option value="W">W</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="wejsciowy-wiersz" data-index="1">
+                <div class="field">
+                  <label>Data #2</label>
+                  <input type="date" id="data-1" />
+                </div>
+                <div class="field">
+                  <label>Typ zmiany</label>
+                  <select id="typ-1">
+                    <option value="">— wybierz —</option>
+                    <option value="I">I</option>
+                    <option value="II">II</option>
+                    <option value="N">N</option>
+                    <option value="W">W</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="wejsciowy-wiersz" data-index="2">
+                <div class="field">
+                  <label>Data #3</label>
+                  <input type="date" id="data-2" />
+                </div>
+                <div class="field">
+                  <label>Typ zmiany</label>
+                  <select id="typ-2">
+                    <option value="">— wybierz —</option>
+                    <option value="I">I</option>
+                    <option value="II">II</option>
+                    <option value="N">N</option>
+                    <option value="W">W</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="wejsciowy-wiersz" data-index="3">
+                <div class="field">
+                  <label>Data #4</label>
+                  <input type="date" id="data-3" />
+                </div>
+                <div class="field">
+                  <label>Typ zmiany</label>
+                  <select id="typ-3">
+                    <option value="">— wybierz —</option>
+                    <option value="I">I</option>
+                    <option value="II">II</option>
+                    <option value="N">N</option>
+                    <option value="W">W</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="buttons-row">
+            <button id="btnGeneruj" class="btn-primary">Generuj grafik</button>
+            <button id="btnRecalc" class="btn-primary" style="display: none">
+              Przelicz grafik ponownie
+            </button>
+            <button id="btnReset" class="btn-secondary btn-reset">
+              Resetuj grafik (od zera)
+            </button>
           </div>
         </div>
       </div>
+    </div>
 
-      <div id="emptyInfo" class="section empty-info">
-        <p>
-          Ustaw powyżej 4 dni i kliknij
-          <strong>„Generuj grafik”</strong>, aby zobaczyć kalendarz.
-        </p>
+    <!-- MODAL EDYCJI DNIA -->
+    <div id="dayModalBackdrop" class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title" id="modalTitle">Dzień</div>
+          <button class="modal-close" id="modalCloseBtn">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <!-- ZWYKŁA NOTATKA (jak wcześniej) -->
+          <div class="field">
+            <label for="modalTyp">Typ dnia</label>
+            <select id="modalTyp">
+              <option value="">(domyślny z grafiku)</option>
+              <option value="I">I</option>
+              <option value="II">II</option>
+              <option value="N">N</option>
+              <option value="W">W</option>
+              <option value="L4">L4</option>
+              <option value="UW">UW (urlop)</option>
+              <option value="INNE">Inne</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="modalNotka">Notatka (np. „lekarz 8:00”)</label>
+            <textarea id="modalNotka" placeholder="Wpisz notatkę..."></textarea>
+          </div>
+        </div>
+        <!-- HASŁO – odblokowuje ukrytą sekcję z punktami -->
+        <div class="field">
+          <label for="modalPassword"></label>
+          <input type="password" id="modalPassword" placeholder="Wpisz" />
+        </div>
+
+        <!-- UKRYTA SEKCJA Z PUNKTAMI -->
+        <div id="pointsSection" class="points-section" style="display: none">
+          <div class="field">
+            <label for="modalPktAparat">Punkty za aparat</label>
+            <input
+              type="number"
+              id="modalPktAparat"
+              min="0"
+              step="1"
+              inputmode="numeric"
+            />
+          </div>
+          <div class="field">
+            <label for="modalPktZadanie">Punkty za zadanie</label>
+            <input
+              type="number"
+              id="modalPktZadanie"
+              min="0"
+              step="1"
+              inputmode="numeric"
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="modalClearBtn">
+            Wyczyść zmiany
+          </button>
+          <button class="btn-save" id="modalSaveBtn">Zapisz</button>
+        </div>
       </div>
     </div>
 
-    <!-- PRZYCISK NA DOLE -->
-    <button id="toggleGenerator" class="toggle-btn">
-      <span class="icon">📅</span>
-      <span id="toggleText">Otwórz generator grafiku</span>
-    </button>
-  </div>
-
-  <!-- MODAL EDYCJI DNIA -->
-  <div id="dayModalBackdrop" class="modal-backdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title" id="modalTitle">Dzień</div>
-        <button class="modal-close" id="modalCloseBtn">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="field">
-          <label for="modalTyp">Typ dnia</label>
-          <select id="modalTyp">
-            <option value="">(domyślny z grafiku)</option>
-            <option value="I">I</option>
-            <option value="II">II</option>
-            <option value="N">N</option>
-            <option value="W">W</option>
-            <option value="L4">L4</option>
-            <option value="UW">UW (urlop)</option>
-            <option value="INNE">Inne (własne)</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="modalNotka">Notatka (np. „lekarz 8:00”)</label>
-          <textarea id="modalNotka" placeholder="Wpisz notatkę..."></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" id="modalClearBtn">
-          Wyczyść zmiany
-        </button>
-        <button class="btn-save" id="modalSaveBtn">Zapisz</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // --------- CYKLE (nowa logika 3→2→1 i odwrotnie) ---------
-    const CYKL_321 = [
-      "N", "N", "N", "N",
-      "W", "W",
-      "II", "II", "II", "II",
-      "W",
-      "I", "I", "I", "I",
-      "W"
-    ];
-
-    const CYKL_123 = [
-      "I", "I", "I", "I",
-      "W",
-      "II", "II", "II", "II",
-      "W",
-      "N", "N", "N", "N",
-      "W", "W"
-    ];
-
-    const OPIS_ZMIAN = {
-      I: "I zmiana",
-      II: "II zmiana",
-      N: "Nocka",
-      W: "Wolne",
-      L4: "L4",
-      UW: "Urlop wypoczynkowy",
-      INNE: "Inne"
-    };
-
-    const STORAGE_KEY = "grafik_4brygadowy_offline_v2";
-
-    const today = new Date();
-    let visibleYear = today.getFullYear();
-    let visibleMonth = today.getMonth();
-
-    let state = {
-      dniWejsciowe: [],
-      startCyklu: null,
-      overrides: {},  // "YYYY-MM-DD": { typ, notka }
-      direction: "321"
-    };
-
-    let generatorVisible = false;
-    let calendarGenerated = false;
-
-    function getCurrentCycle() {
-      return state.direction === "123" ? CYKL_123 : CYKL_321;
-    }
-
-    function formatDateISO(d) {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      return `${y}-${m}-${day}`;
-    }
-
-    function parseISO(str) {
-      if (!str) return null;
-      const [y, m, d] = str.split("-").map(Number);
-      if (!y || !m || !d) return null;
-      return new Date(y, m - 1, d);
-    }
-
-    function diffDays(d1, d0) {
-      const a = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate());
-      const b = new Date(d0.getFullYear(), d0.getMonth(), d0.getDate());
-      return Math.floor((a - b) / 86400000);
-    }
-
-    function pobierzZmianeDlaDaty(data, startDate) {
-      const cycle = getCurrentCycle();
-      const diff = diffDays(data, startDate);
-      const idx = ((diff % cycle.length) + cycle.length) % cycle.length;
-      const kod = cycle[idx];
-      return {
-        kod,
-        nazwa: OPIS_ZMIAN[kod] || ""
-      };
-    }
-
-    // ---------- LOCALSTORAGE ----------
-    function loadState() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) {
-          const todayISO = formatDateISO(today);
-          const d1 = formatDateISO(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1));
-          const d2 = formatDateISO(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2));
-          const d3 = formatDateISO(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3));
-          state.dniWejsciowe = [
-            { data: todayISO, typ: "" },
-            { data: d1, typ: "" },
-            { data: d2, typ: "" },
-            { data: d3, typ: "" }
-          ];
-          state.startCyklu = null;
-          state.overrides = {};
-          state.direction = "321";
-          return;
-        }
-        const parsed = JSON.parse(raw);
-        state = Object.assign(
-          {
-            dniWejsciowe: [],
-            startCyklu: null,
-            overrides: {},
-            direction: "321"
-          },
-          parsed
-        );
-      } catch (e) {
-        console.error("Błąd odczytu z localStorage", e);
-      }
-    }
-
-    function saveState() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      } catch (e) {
-        console.error("Błąd zapisu do localStorage", e);
-      }
-    }
-
-    // ---------- SZUKANIE STARTU CYKLU ----------
-    function znajdzStartCykluZWejsciowych(entries) {
-      const cycle = getCurrentCycle();
-      const filled = entries
-        .filter(e => e.data && e.typ)
-        .map(e => ({
-          data: e.data,
-          typ: e.typ,
-          dateObj: parseISO(e.data)
-        }))
-        .filter(e => e.dateObj);
-
-      if (!filled.length) return null;
-
-      filled.sort((a, b) => a.dateObj - b.dateObj);
-
-      const anchor = filled[0];
-      const L = cycle.length;
-
-      for (let offset = 0; offset < L; offset++) {
-        const startCandidate = new Date(anchor.dateObj);
-        startCandidate.setDate(startCandidate.getDate() - offset);
-
-        let pasuje = true;
-        for (const e of filled) {
-          const diff = diffDays(e.dateObj, startCandidate);
-          const idx = ((diff % L) + L) % L;
-          if (cycle[idx] !== e.typ) {
-            pasuje = false;
-            break;
-          }
-        }
-
-        if (pasuje) {
-          return startCandidate;
-        }
-      }
-      return null;
-    }
-
-    // ---------- KALENDARZ ----------
-    function renderMonthLabel() {
-      const label = document.getElementById("monthLabel");
-      const d = new Date(visibleYear, visibleMonth, 1);
-      label.textContent = d.toLocaleDateString("pl-PL", {
-        month: "long",
-        year: "numeric"
-      });
-    }
-
-    function buildWeekRow(weekData) {
-      const tr = document.createElement("tr");
-      weekData.forEach(cell => {
-        const td = document.createElement("td");
-        if (!cell) {
-          td.className = "pusta";
-        } else {
-          td.className = `komorka ${cell.zmianaClass}`;
-          const div = document.createElement("div");
-          div.className = "cell-content";
-
-          const dEl = document.createElement("div");
-          dEl.className = "data";
-          dEl.textContent = cell.dateObj.getDate();
-          div.appendChild(dEl);
-
-          if (cell.typ) {
-            const kodEl = document.createElement("div");
-            kodEl.className = "kod";
-            kodEl.textContent = cell.typ;
-            div.appendChild(kodEl);
-          }
-
-          if (cell.nazwa) {
-            const nazwaEl = document.createElement("div");
-            nazwaEl.className = "nazwa";
-            nazwaEl.textContent = cell.nazwa;
-            div.appendChild(nazwaEl);
-          }
-
-          if (cell.notka) {
-            const notkaEl = document.createElement("div");
-            notkaEl.className = "notka";
-            notkaEl.textContent = cell.notka;
-            div.appendChild(notkaEl);
-          }
-
-          td.appendChild(div);
-
-          td.addEventListener("click", () => {
-            openDayModal(cell.iso, cell);
-          });
-        }
-        tr.appendChild(td);
-      });
-      return tr;
-    }
-
-    function renderCalendar() {
-      const calendarBody = document.getElementById("calendarBody");
-      calendarBody.innerHTML = "";
-
-      if (!calendarGenerated || !state.startCyklu) return;
-
-      const startDate = parseISO(state.startCyklu);
-      if (!startDate) return;
-
-      const first = new Date(visibleYear, visibleMonth, 1);
-      const last = new Date(visibleYear, visibleMonth + 1, 0);
-      const daysInMonth = last.getDate();
-
-      const offset = (first.getDay() + 6) % 7;
-
-      let week = [];
-      for (let i = 0; i < offset; i++) {
-        week.push(null);
-      }
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dateObj = new Date(visibleYear, visibleMonth, day);
-        const iso = formatDateISO(dateObj);
-        const baseZmiana = pobierzZmianeDlaDaty(dateObj, startDate);
-
-        let typ = baseZmiana.kod;
-        let nazwa = baseZmiana.nazwa;
-        let notka = "";
-
-        if (state.overrides[iso]) {
-          const ov = state.overrides[iso];
-          if (ov.typ) {
-            typ = ov.typ;
-            nazwa = OPIS_ZMIAN[ov.typ] || baseZmiana.nazwa;
-          }
-          if (ov.notka) {
-            notka = ov.notka;
-          }
-        }
-
-        if (!OPIS_ZMIAN[typ] && typ) {
-          nazwa = "Inne";
-        }
-
-        const zmianaClass = typ ? `zmiana-${typ}` : "";
-        const cellData = {
-          dateObj,
-          iso,
-          typ,
-          nazwa,
-          notka,
-          zmianaClass
-        };
-
-        week.push(cellData);
-
-        if (week.length === 7) {
-          const tr = buildWeekRow(week);
-          calendarBody.appendChild(tr);
-          week = [];
-        }
-      }
-
-      if (week.length > 0) {
-        while (week.length < 7) week.push(null);
-        const tr = buildWeekRow(week);
-        calendarBody.appendChild(tr);
-      }
-
-      renderMonthLabel();
-    }
-
-    // ---------- MODAL ----------
-    let modalDateISO = null;
-
-    function openDayModal(iso, cell) {
-      modalDateISO = iso;
-
-      const modalBackdrop = document.getElementById("dayModalBackdrop");
-      const modalTitle = document.getElementById("modalTitle");
-      const modalTyp = document.getElementById("modalTyp");
-      const modalNotka = document.getElementById("modalNotka");
-
-      const dateObj = parseISO(iso);
-      const dateLabel = dateObj
-        ? dateObj.toLocaleDateString("pl-PL", {
-            weekday: "short",
-            day: "numeric",
-            month: "short",
-            year: "numeric"
-          })
-        : iso;
-
-      modalTitle.textContent = `Dzień: ${dateLabel}`;
-      const override = state.overrides[iso];
-
-      if (override && override.typ) {
-        modalTyp.value = override.typ;
-      } else {
-        modalTyp.value = "";
-      }
-
-      modalNotka.value = override && override.notka ? override.notka : "";
-
-      modalBackdrop.classList.add("show");
-    }
-
-    function closeDayModal() {
-      const modalBackdrop = document.getElementById("dayModalBackdrop");
-      modalBackdrop.classList.remove("show");
-      modalDateISO = null;
-    }
-
-    function saveDayModal() {
-      if (!modalDateISO) return;
-      const modalTyp = document.getElementById("modalTyp");
-      const modalNotka = document.getElementById("modalNotka");
-
-      const typ = modalTyp.value;
-      const notka = modalNotka.value.trim();
-
-      const baseDate = parseISO(modalDateISO);
-      if (!baseDate || !state.startCyklu) return;
-
-      const baseZmiana = pobierzZmianeDlaDaty(baseDate, parseISO(state.startCyklu));
-      const defaultTyp = baseZmiana.kod;
-
-      if ((!typ || typ === "") && !notka) {
-        delete state.overrides[modalDateISO];
-      } else if ((!typ || typ === defaultTyp) && !notka) {
-        delete state.overrides[modalDateISO];
-      } else {
-        state.overrides[modalDateISO] = {
-          typ: typ || "",
-          notka
-        };
-      }
-
-      saveState();
-      renderCalendar();
-      closeDayModal();
-    }
-
-    function clearDayModal() {
-      if (!modalDateISO) return;
-      delete state.overrides[modalDateISO];
-      saveState();
-      renderCalendar();
-      closeDayModal();
-    }
-
-    // ---------- GENEROWANIE / PRZELICZANIE ----------
-    function hideInputDaysAfterFirstGeneration() {
-      const dniWrapper = document.getElementById("dniWejscioweWrapper");
-      if (dniWrapper) dniWrapper.style.display = "none";
-      const btnGeneruj = document.getElementById("btnGeneruj");
-      if (btnGeneruj) btnGeneruj.style.display = "none";
-      const btnRecalc = document.getElementById("btnRecalc");
-      if (btnRecalc) btnRecalc.style.display = "inline-block";
-    }
-
-    function clearOverrideTypesButKeepNotes() {
-      const newOverrides = {};
-      Object.entries(state.overrides).forEach(([iso, val]) => {
-        if (val && val.notka) {
-          newOverrides[iso] = { typ: "", notka: val.notka };
-        }
-      });
-      state.overrides = newOverrides;
-    }
-
-    function firstGeneration() {
-      const directionSelect = document.getElementById("direction");
-      state.direction = directionSelect.value || "321";
-
-      const entries = [];
-      for (let i = 0; i < 4; i++) {
-        const dataInput = document.getElementById(`data-${i}`);
-        const typSelect = document.getElementById(`typ-${i}`);
-        const data = dataInput.value;
-        const typ = typSelect.value;
-        entries.push({ data, typ });
-      }
-
-      state.dniWejsciowe = entries;
-
-      const start = znajdzStartCykluZWejsciowych(entries);
-      if (!start) {
-        alert("Podane dni nie pasują do wzoru cyklu (w wybranym kierunku).");
-        return;
-      }
-
-      state.startCyklu = formatDateISO(start);
-      saveState();
-
-      calendarGenerated = true;
-      document.getElementById("calendarSection").style.display = "block";
-      document.getElementById("emptyInfo").style.display = "none";
-
-      visibleYear = today.getFullYear();
-      visibleMonth = today.getMonth();
-
-      hideInputDaysAfterFirstGeneration();
-      renderCalendar();
-    }
-
-    function recalcGeneration() {
-      if (!state.dniWejsciowe || !state.dniWejsciowe.length) {
-        alert("Brak zapisanych 4 dni początkowych – nie mogę przeliczyć grafiku.");
-        return;
-      }
-      const directionSelect = document.getElementById("direction");
-      state.direction = directionSelect.value || "321";
-
-      clearOverrideTypesButKeepNotes(); // zostawiamy notatki, resetujemy typy
-
-      const start = znajdzStartCykluZWejsciowych(state.dniWejsciowe);
-      if (!start) {
-        alert("Nie udało się przeliczyć grafiku na podstawie zapisanych dni.");
-        return;
-      }
-
-      state.startCyklu = formatDateISO(start);
-      saveState();
-
-      calendarGenerated = true;
-      document.getElementById("calendarSection").style.display = "block";
-      document.getElementById("emptyInfo").style.display = "none";
-
-      renderCalendar();
-    }
-
-    function resetGrafik() {
-      localStorage.removeItem(STORAGE_KEY);
-      location.reload();
-    }
-
-    // ---------- INIT + PWA ----------
-    document.addEventListener("DOMContentLoaded", () => {
-      loadState();
-
-      const toggleBtn = document.getElementById("toggleGenerator");
-      const generator = document.getElementById("generator");
-      const toggleText = document.getElementById("toggleText");
-      const directionSelect = document.getElementById("direction");
-      const dniWrapper = document.getElementById("dniWejscioweWrapper");
-      const btnGeneruj = document.getElementById("btnGeneruj");
-      const btnRecalc = document.getElementById("btnRecalc");
-      const btnReset = document.getElementById("btnReset");
-      const calendarSection = document.getElementById("calendarSection");
-      const emptyInfo = document.getElementById("emptyInfo");
-
-      directionSelect.value = state.direction || "321";
-
-      for (let i = 0; i < 4; i++) {
-        const row = state.dniWejsciowe[i];
-        const dataInput = document.getElementById(`data-${i}`);
-        const typSelect = document.getElementById(`typ-${i}`);
-        if (dataInput && row && row.data) {
-          dataInput.value = row.data;
-        }
-        if (typSelect && row && row.typ) {
-          typSelect.value = row.typ;
-        }
-      }
-
-      if (state.startCyklu) {
-        calendarGenerated = true;
-        calendarSection.style.display = "block";
-        emptyInfo.style.display = "none";
-        generatorVisible = true;
-        generator.style.display = "block";
-        toggleText.textContent = "Ukryj generator grafiku";
-
-        hideInputDaysAfterFirstGeneration();
-        renderCalendar();
-      } else {
-        generatorVisible = false;
-        generator.style.display = "none";
-        toggleText.textContent = "Otwórz generator grafiku";
-        btnRecalc.style.display = "none";
-        dniWrapper.style.display = "block";
-        btnGeneruj.style.display = "inline-block";
-      }
-
-      toggleBtn.addEventListener("click", () => {
-        generatorVisible = !generatorVisible;
-        generator.style.display = generatorVisible ? "block" : "none";
-        toggleText.textContent = generatorVisible
-          ? "Ukryj generator grafiku"
-          : "Otwórz generator grafiku";
-      });
-
-      btnGeneruj.addEventListener("click", firstGeneration);
-      btnRecalc.addEventListener("click", recalcGeneration);
-      btnReset.addEventListener("click", resetGrafik);
-
-      document.getElementById("btnPrevMonth").addEventListener("click", () => {
-        if (visibleMonth === 0) {
-          visibleMonth = 11;
-          visibleYear -= 1;
-        } else {
-          visibleMonth -= 1;
-        }
-        renderCalendar();
-      });
-
-      document.getElementById("btnNextMonth").addEventListener("click", () => {
-        if (visibleMonth === 11) {
-          visibleMonth = 0;
-          visibleYear += 1;
-        } else {
-          visibleMonth += 1;
-        }
-        renderCalendar();
-      });
-
-      document
-        .getElementById("modalCloseBtn")
-        .addEventListener("click", closeDayModal);
-      document
-        .getElementById("dayModalBackdrop")
-        .addEventListener("click", (e) => {
-          if (e.target.id === "dayModalBackdrop") {
-            closeDayModal();
-          }
-        });
-      document
-        .getElementById("modalSaveBtn")
-        .addEventListener("click", saveDayModal);
-      document
-        .getElementById("modalClearBtn")
-        .addEventListener("click", clearDayModal);
-
-      // Rejestracja SW tylko na https / localhost
-      if (
-        "serviceWorker" in navigator &&
-        (window.location.protocol === "https:" ||
-          window.location.hostname === "localhost")
-      ) {
-        navigator.serviceWorker.register("sw.js").catch((err) => {
-          console.log("SW register error:", err);
-        });
-      }
-    });
-  </script>
-</body>
+    <!-- SCRIPTS -->
+    <script src="app.js"></script>
+  </body>
 </html>
-

@@ -1,11 +1,10 @@
 {
-  "name": "Grafik 4-brygadowy",
+  "name": "Generator grafiku 4-brygadowego",
   "short_name": "Grafik",
-  "start_url": "/grafik-4brygadowy/",
+  "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#111827",
+  "background_color": "#1f2937",
   "theme_color": "#1f2937",
-  "lang": "pl-PL",
   "icons": [
     {
       "src": "icon-192.png",
