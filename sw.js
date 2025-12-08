@@ -1,5 +1,5 @@
-const PRECACHE = "grafik-precache-v2";
-const RUNTIME = "grafik-runtime-v2";
+const PRECACHE = "grafik-precache-v3";
+const RUNTIME = "grafik-runtime-v3";
 
 const PRECACHE_ASSETS = [
   "./",
