@@ -617,7 +617,7 @@ function openDayModal(iso, cell) {
     if (modalPassword) {
       modalPassword.value = "";
       modalPassword.disabled = false;
-      modalPassword.placeholder = "Wpisz";
+      modalPassword.placeholder = "Wpisz kod";
       modalPassword.style.opacity = "1";
     }
     if (pointsSection) pointsSection.style.display = "none";
