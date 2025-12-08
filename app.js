@@ -251,10 +251,10 @@ function buildWeekRow(weekData) {
       if (cell.pktAparat != null || cell.pktZadanie != null) {
         const parts = [];
         if (cell.pktAparat != null) {
-          parts.push(`aparaty: ${cell.pktAparat}`);
+          parts.push(`ap: ${cell.pktAparat}`);
         }
         if (cell.pktZadanie != null) {
-          parts.push(`zadania: ${cell.pktZadanie}`);
+          parts.push(`zad: ${cell.pktZadanie}`);
         }
 
         const punktyEl = document.createElement("div");
