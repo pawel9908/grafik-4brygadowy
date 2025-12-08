@@ -53,6 +53,10 @@ const SECRET_PASSWORD = "pkt321"; // <-- ZMIEŃ NA SWOJE
 const today = new Date();
 let visibleYear = today.getFullYear();
 let visibleMonth = today.getMonth();
+let touchStartX = null;
+let touchStartY = null;
+let touchEndX = null;
+let touchEndY = null;
 
 let state = {
   dniWejsciowe: [],
@@ -66,6 +70,65 @@ let calendarGenerated = false;
 
 function getCurrentCycle() {
   return state.direction === "123" ? CYKL_123 : CYKL_321;
+}
+function setupCalendarSwipe() {
+  const calendarWrapper = document.querySelector(".calendar-wrapper");
+  if (!calendarWrapper) return;
+
+  const SWIPE_THRESHOLD = 50; // minimalny ruch poziomy w px
+  const MAX_VERTICAL_OFFSET = 40; // max. pionowy ruch, żeby nie łapać scrolla
+
+  calendarWrapper.addEventListener(
+    "touchstart",
+    (e) => {
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchEndX = touch.clientX;
+      touchEndY = touch.clientY;
+    },
+    { passive: true }
+  );
+
+  calendarWrapper.addEventListener(
+    "touchmove",
+    (e) => {
+      const touch = e.touches[0];
+      touchEndX = touch.clientX;
+      touchEndY = touch.clientY;
+    },
+    { passive: true }
+  );
+
+  calendarWrapper.addEventListener(
+    "touchend",
+    () => {
+      if (touchStartX === null || touchStartY === null) return;
+
+      const dx = (touchEndX ?? touchStartX) - touchStartX;
+      const dy = (touchEndY ?? touchStartY) - touchStartY;
+
+      // reset
+      touchStartX = touchStartY = touchEndX = touchEndY = null;
+
+      // bardziej w pionie niż w poziomie -> traktujemy jako scroll
+      if (Math.abs(dy) > MAX_VERTICAL_OFFSET) return;
+
+      // za mały gest
+      if (Math.abs(dx) < SWIPE_THRESHOLD) return;
+
+      if (dx < 0) {
+        // przesunięcie w lewo -> następny miesiąc
+        const btnNext = document.getElementById("btnNextMonth");
+        if (btnNext) btnNext.click();
+      } else {
+        // przesunięcie w prawo -> poprzedni miesiąc
+        const btnPrev = document.getElementById("btnPrevMonth");
+        if (btnPrev) btnPrev.click();
+      }
+    },
+    { passive: true }
+  );
 }
 
 function formatDateISO(d) {
@@ -1086,4 +1149,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+  // Swipe kalendarza palcem lewo/prawo
+  setupCalendarSwipe();
 });
