@@ -38,12 +38,12 @@ const CYKL_123 = [
 ];
 
 const OPIS_ZMIAN = {
-  I: "I zmiana",
-  II: "II zmiana",
-  N: "III zmiana",
+  I: "I Zm.",
+  II: "II Zm",
+  N: "III Zm",
   W: "Wolne",
   L4: "L4",
-  UW: "Urlop wypoczynkowy",
+  UW: "Uw",
   INNE: "Inne",
 };
 
