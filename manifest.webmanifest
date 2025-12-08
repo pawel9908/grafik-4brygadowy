@@ -1,7 +1,8 @@
 {
   "name": "Generator grafiku 4-brygadowego",
   "short_name": "Grafik",
-  "start_url": "index.html",
+  "start_url": "/grafik-4brygadowy/",
+  "scope": "/grafik-4brygadowy/",
   "display": "standalone",
   "background_color": "#1f2937",
   "theme_color": "#1f2937",

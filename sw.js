@@ -1,29 +1,31 @@
-// ZMIEŃ wersję przy każdym większym deployu
-const CACHE_VERSION = "v5";
+// Ustaw root zgodnie z GitHub Pages
+const ROOT = "/grafik-4brygadowy/";
+
+// Zmieniaj przy każdym deployu
+const CACHE_VERSION = "v12";
 const CACHE_NAME = `grafik-cache-${CACHE_VERSION}`;
 
 const ASSETS = [
-  "index.html",
-  "style.css",
-  "app.js",
-  "manifest.webmanifest",
-  "icon-192.png",
-  "icon-512.png",
+  ROOT,
+  ROOT + "index.html",
+  ROOT + "style.css",
+  ROOT + "app.js",
+  ROOT + "manifest.webmanifest",
+  ROOT + "icon-192.png",
+  ROOT + "icon-512.png",
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
-
-  // od razu aktywuj nowego SW (bez czekania)
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
-      // skasuj stare cache
+      // Czyścimy stare cache
       const keys = await caches.keys();
       await Promise.all(
         keys
@@ -33,14 +35,14 @@ self.addEventListener("activate", (event) => {
           .map((key) => caches.delete(key))
       );
 
-      // przejmij od razu kontrolę nad wszystkimi klientami
       await self.clients.claim();
 
-      // powiadom wszystkie okna/apki że jest nowa wersja
+      // Wyślij info do aplikacji
       const clients = await self.clients.matchAll({
         type: "window",
         includeUncontrolled: true,
       });
+
       for (const client of clients) {
         client.postMessage({ type: "NEW_VERSION_AVAILABLE" });
       }
@@ -49,19 +51,17 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  const { request } = event;
+  const req = event.request;
 
-  // tylko GET
-  if (request.method !== "GET") return;
+  if (req.method !== "GET") return;
 
   event.respondWith(
-    caches.match(request).then((cached) => {
+    caches.match(req).then((cached) => {
       if (cached) return cached;
 
-      return fetch(request).catch(() => {
-        // gdy offline i ktoś próbuje wejść na stronę
-        if (request.mode === "navigate") {
-          return caches.match("index.html");
+      return fetch(req).catch(() => {
+        if (req.mode === "navigate") {
+          return caches.match(ROOT + "index.html");
         }
       });
     })
