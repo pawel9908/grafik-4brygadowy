@@ -620,9 +620,43 @@ body {
   cursor: pointer;
   white-space: nowrap;
 }
+#modalPassword {
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  width: 100%;
+  background: #f9fafb;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+/* Efekt po kliknięciu */
+#modalPassword:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.25);
+  background: #ffffff;
+}
+
+/* Placeholder bardziej elegancki */
+#modalPassword::placeholder {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Styl całej sekcji z hasłem */
+.field input#modalPassword {
+  margin-top: 4px;
+}
 
 .update-banner-btn:active {
   transform: translateY(1px);
+}
+@media (max-width: 480px) {
+  #modalPassword {
+    font-size: 1rem;
+    padding: 10px 12px;
+  }
 }
 
 /* lepsze zachowanie na bardzo małych ekranach */

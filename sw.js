@@ -2,7 +2,7 @@
 const ROOT = "/grafik-4brygadowy/";
 
 // Zmieniaj przy każdym deployu
-const CACHE_VERSION = "v13";
+const CACHE_VERSION = "v14";
 const CACHE_NAME = `grafik-cache-${CACHE_VERSION}`;
 
 const ASSETS = [
