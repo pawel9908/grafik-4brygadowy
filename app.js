@@ -146,10 +146,16 @@ function parseISO(str) {
 }
 
 function diffDays(d1, d0) {
-  const a = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate());
-  const b = new Date(d0.getFullYear(), d0.getMonth(), d0.getDate());
-  return Math.floor((a - b) / 86400000);
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+  const utc1 = Date.UTC(d1.getFullYear(), d1.getMonth(), d1.getDate());
+  const utc0 = Date.UTC(d0.getFullYear(), d0.getMonth(), d0.getDate());
+
+  // round zamiast floor – żeby 23h lub 25h nadal dało 1 dzień
+  return Math.round((utc1 - utc0) / MS_PER_DAY);
 }
+
+
 
 function pobierzZmianeDlaDaty(data, startDate) {
   const cycle = getCurrentCycle();
@@ -1152,3 +1158,4 @@ document.addEventListener("DOMContentLoaded", () => {
   // Swipe kalendarza palcem lewo/prawo
   setupCalendarSwipe();
 });
+
