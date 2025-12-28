@@ -1,7 +1,3 @@
-// ---------- LOCALSTORAGE ----------
-const APP_VERSION = "25"; // lub nowsza, jaką masz
-
-// --------- CYKLE (nowa logika 3→2→1 i odwrotnie) ---------
 const CYKL_321 = [
   "N",
   "N",
@@ -49,8 +45,6 @@ const OPIS_ZMIAN = {
   UW: "Uw",
   INNE: "Inne",
 };
-const STORAGE_KEY = "grafik_4brygadowy_offline_v2";
-const APP_VERSION = "2.0"; // <--- ZWIĘKSZAJ przy każdej zmianie logiki
 
 const STORAGE_KEY = "grafik_4brygadowy_offline_v2";
 // Hasło do odblokowania widoku punktów w modalu
@@ -69,7 +63,6 @@ let state = {
   overrides: {},
   direction: "321",
   pointsUnlocked: false, // <--- DODANE
-version: APP_VERSION,
 };
 
 let calendarGenerated = false;
@@ -141,7 +134,7 @@ function formatDateISO(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  return ${y}-${m}-${day};
 }
 
 function parseISO(str) {
@@ -162,7 +155,6 @@ function diffDays(d1, d0) {
 }
 
 
-
 function pobierzZmianeDlaDaty(data, startDate) {
   const cycle = getCurrentCycle();
   const diff = diffDays(data, startDate);
@@ -174,14 +166,11 @@ function pobierzZmianeDlaDaty(data, startDate) {
   };
 }
 
-
-
+// ---------- LOCALSTORAGE ----------
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-
-    // Funkcja pomocnicza – domyślne 4 dni od dziś
-    function buildDefaultDni() {
+    if (!raw) {
       const todayISO = formatDateISO(today);
       const d1 = formatDateISO(
         new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
@@ -192,53 +181,24 @@ function loadState() {
       const d3 = formatDateISO(
         new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3)
       );
-      return [
+      state.dniWejsciowe = [
         { data: todayISO, typ: "" },
         { data: d1, typ: "" },
         { data: d2, typ: "" },
         { data: d3, typ: "" },
       ];
-    }
-
-    // 1) Brak danych w localStorage – pierwsze odpalenie
-    if (!raw) {
-      state = {
-        dniWejsciowe: buildDefaultDni(),
-        startCyklu: null,
-        overrides: {},
-        direction: "321",
-        pointsUnlocked: false,
-        version: APP_VERSION,
-      };
+      state.startCyklu = null;
+      state.overrides = {};
+      state.direction = "321";
       return;
     }
-
     const parsed = JSON.parse(raw);
-
-    // 2) ZMIANA WERSJI – czyścimy grafik, zostawiamy notatki/punkty
-    if (parsed.version !== APP_VERSION) {
-      state = {
-        dniWejsciowe: buildDefaultDni(),       // <-- TU WAŻNE: nie [], tylko domyślne dni
-        startCyklu: null,                      // brak wyliczonego startu cyklu
-        overrides: parsed.overrides || {},     // zostają notatki/punkty
-        direction: "321",                      // możesz tu wziąć parsed.direction, jeśli chcesz
-        pointsUnlocked: parsed.pointsUnlocked || false,
-        version: APP_VERSION,
-      };
-
-      saveState();
-      return;
-    }
-
-    // 3) Ta sama wersja – normalne wczytanie
     state = Object.assign(
       {
-        dniWejsciowe: buildDefaultDni(),
+        dniWejsciowe: [],
         startCyklu: null,
         overrides: {},
         direction: "321",
-        pointsUnlocked: false,
-        version: APP_VERSION,
       },
       parsed
     );
@@ -247,20 +207,13 @@ function loadState() {
   }
 }
 
-
 function saveState() {
   try {
-    const toSave = Object.assign({}, state, {
-      version: APP_VERSION,
-    });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (e) {
     console.error("Błąd zapisu do localStorage", e);
   }
 }
-
-
-
 
 // ---------- SZUKANIE STARTU CYKLU ----------
 function znajdzStartCykluZWejsciowych(entries) {
@@ -309,7 +262,7 @@ function buildDniWejscioweDebug(entries) {
       const nr = idx + 1;
       const data = e.data && e.data !== "" ? e.data : "brak daty";
       const typ = e.typ && e.typ !== "" ? e.typ : "brak typu";
-      return `#${nr}: data = ${data}, typ = ${typ}`;
+      return #${nr}: data = ${data}, typ = ${typ};
     })
     .join("\n");
 }
@@ -331,7 +284,7 @@ function buildWeekRow(weekData) {
     if (!cell) {
       td.className = "pusta";
     } else {
-      td.className = `komorka ${cell.zmianaClass}`;
+      td.className = komorka ${cell.zmianaClass};
       const div = document.createElement("div");
       div.className = "cell-content";
 
@@ -365,10 +318,10 @@ function buildWeekRow(weekData) {
       if (cell.pktAparat != null || cell.pktZadanie != null) {
         const parts = [];
         if (cell.pktAparat != null) {
-          parts.push(`ap: ${cell.pktAparat}`);
+          parts.push(ap: ${cell.pktAparat});
         }
         if (cell.pktZadanie != null) {
-          parts.push(`zad: ${cell.pktZadanie}`);
+          parts.push(zad: ${cell.pktZadanie});
         }
 
         const punktyEl = document.createElement("div");
@@ -501,7 +454,7 @@ function updateMonthSummary() {
 
   const showPoints = !!state.pointsUnlocked; // <-- tylko gdy hasło było poprawne
 
-  let html = `
+  let html = 
     <div>Okres: <strong>${labelDate}</strong></div>
     <div class="month-summary-grid">
       <div class="month-summary-item">
@@ -532,10 +485,10 @@ function updateMonthSummary() {
         <span class="month-summary-label">Inne</span>
         <span class="month-summary-value">${counts.INNE}</span>
       </div>
-  `;
+  ;
 
   if (showPoints) {
-    html += `
+    html += 
       <div class="month-summary-item">
         <span class="month-summary-label">Pkt aparat</span>
         <span class="month-summary-value">${points.aparat}</span>
@@ -548,10 +501,10 @@ function updateMonthSummary() {
         <span class="month-summary-label">Pkt razem</span>
         <span class="month-summary-value">${totalPoints}</span>
       </div>
-    `;
+    ;
   }
 
-  html += `</div>`;
+  html += </div>;
   summaryBox.innerHTML = html;
 }
 
@@ -607,7 +560,7 @@ function showYearSummary() {
   const totalPoints = points.aparat + points.zadanie;
 
   // generowanie HTML
-  let html = `
+  let html = 
     <div>Rok: <strong>${year}</strong></div>
     <div class="year-summary-grid">
       <div class="year-summary-item">
@@ -638,10 +591,10 @@ function showYearSummary() {
         <span class="year-summary-label">Inne</span>
         <span class="year-summary-value">${counts.INNE}</span>
       </div>
-  `;
+  ;
 
   if (showPoints) {
-    html += `
+    html += 
       <div class="year-summary-item">
         <span class="year-summary-label">Pkt aparat</span>
         <span class="year-summary-value">${points.aparat}</span>
@@ -654,10 +607,10 @@ function showYearSummary() {
         <span class="year-summary-label">Pkt razem</span>
         <span class="year-summary-value">${totalPoints}</span>
       </div>
-    `;
+    ;
   }
 
-  html += `</div>`;
+  html += </div>;
 
   // wstawienie do HTML
   const box = document.getElementById("yearSummary");
@@ -691,7 +644,7 @@ function openDayModal(iso, cell) {
       })
     : iso;
 
-  modalTitle.textContent = `Dzień: ${dateLabel}`;
+  modalTitle.textContent = Dzień: ${dateLabel};
   const override = state.overrides[iso] || {};
 
   // Typ dnia
@@ -875,8 +828,8 @@ function firstGeneration() {
 
   const entries = [];
   for (let i = 0; i < 4; i++) {
-    const dataInput = document.getElementById(`data-${i}`);
-    const typSelect = document.getElementById(`typ-${i}`);
+    const dataInput = document.getElementById(data-${i});
+    const typSelect = document.getElementById(typ-${i});
     const data = dataInput.value;
     const typ = typSelect.value;
     entries.push({ data, typ });
@@ -919,8 +872,8 @@ function showDniWejscioweInputsFromState() {
 
   for (let i = 0; i < 4; i++) {
     const row = state.dniWejsciowe[i] || {};
-    const dataInput = document.getElementById(`data-${i}`);
-    const typSelect = document.getElementById(`typ-${i}`);
+    const dataInput = document.getElementById(data-${i});
+    const typSelect = document.getElementById(typ-${i});
     if (dataInput) dataInput.value = row.data || "";
     if (typSelect) typSelect.value = row.typ || "";
   }
@@ -956,7 +909,7 @@ function getDayDataForDate(dateObj, startDate) {
     nazwa = "Inne";
   }
 
-  const zmianaClass = typ ? `zmiana-${typ}` : "";
+  const zmianaClass = typ ? zmiana-${typ} : "";
 
   return {
     dateObj,
@@ -1034,8 +987,8 @@ function recalcGeneration() {
   // 1) Pobieramy aktualne wartości z inputów (użytkownik mógł je zmienić)
   const entries = [];
   for (let i = 0; i < 4; i++) {
-    const dataInput = document.getElementById(`data-${i}`);
-    const typSelect = document.getElementById(`typ-${i}`);
+    const dataInput = document.getElementById(data-${i});
+    const typSelect = document.getElementById(typ-${i});
     const data = dataInput ? dataInput.value : "";
     const typ = typSelect ? typSelect.value : "";
     entries.push({ data, typ });
@@ -1110,8 +1063,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   for (let i = 0; i < 4; i++) {
     const row = state.dniWejsciowe[i];
-    const dataInput = document.getElementById(`data-${i}`);
-    const typSelect = document.getElementById(`typ-${i}`);
+    const dataInput = document.getElementById(data-${i});
+    const typSelect = document.getElementById(typ-${i});
     if (dataInput && row && row.data) {
       dataInput.value = row.data;
     }
@@ -1203,6 +1156,4 @@ document.addEventListener("DOMContentLoaded", () => {
   // Swipe kalendarza palcem lewo/prawo
   setupCalendarSwipe();
 });
-
-
 
