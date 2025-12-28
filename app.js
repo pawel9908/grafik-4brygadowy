@@ -49,6 +49,7 @@ const OPIS_ZMIAN = {
 const STORAGE_KEY = "grafik_4brygadowy_offline_v2";
 // Hasło do odblokowania widoku punktów w modalu
 const SECRET_PASSWORD = "pkt321"; // <-- ZMIEŃ NA SWOJE
+
 const today = new Date();
 let visibleYear = today.getFullYear();
 let visibleMonth = today.getMonth();
@@ -70,6 +71,7 @@ let calendarGenerated = false;
 function getCurrentCycle() {
   return state.direction === "123" ? CYKL_123 : CYKL_321;
 }
+
 function setupCalendarSwipe() {
   const calendarWrapper = document.querySelector(".calendar-wrapper");
   if (!calendarWrapper) return;
@@ -134,7 +136,7 @@ function formatDateISO(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
-  return ${y}-${m}-${day};
+  return `${y}-${m}-${day}`;
 }
 
 function parseISO(str) {
@@ -153,7 +155,6 @@ function diffDays(d1, d0) {
   // round zamiast floor – żeby 23h lub 25h nadal dało 1 dzień
   return Math.round((utc1 - utc0) / MS_PER_DAY);
 }
-
 
 function pobierzZmianeDlaDaty(data, startDate) {
   const cycle = getCurrentCycle();
@@ -190,6 +191,7 @@ function loadState() {
       state.startCyklu = null;
       state.overrides = {};
       state.direction = "321";
+      state.pointsUnlocked = false;
       return;
     }
     const parsed = JSON.parse(raw);
@@ -199,6 +201,7 @@ function loadState() {
         startCyklu: null,
         overrides: {},
         direction: "321",
+        pointsUnlocked: false,
       },
       parsed
     );
@@ -254,6 +257,7 @@ function znajdzStartCykluZWejsciowych(entries) {
   }
   return null;
 }
+
 function buildDniWejscioweDebug(entries) {
   if (!entries || !entries.length) return "Brak zapisanych dni.";
 
@@ -262,7 +266,7 @@ function buildDniWejscioweDebug(entries) {
       const nr = idx + 1;
       const data = e.data && e.data !== "" ? e.data : "brak daty";
       const typ = e.typ && e.typ !== "" ? e.typ : "brak typu";
-      return #${nr}: data = ${data}, typ = ${typ};
+      return `#${nr}: data = ${data}, typ = ${typ}`;
     })
     .join("\n");
 }
@@ -270,6 +274,7 @@ function buildDniWejscioweDebug(entries) {
 // ---------- KALENDARZ ----------
 function renderMonthLabel() {
   const label = document.getElementById("monthLabel");
+  if (!label) return;
   const d = new Date(visibleYear, visibleMonth, 1);
   label.textContent = d.toLocaleDateString("pl-PL", {
     month: "long",
@@ -284,7 +289,7 @@ function buildWeekRow(weekData) {
     if (!cell) {
       td.className = "pusta";
     } else {
-      td.className = komorka ${cell.zmianaClass};
+      td.className = `komorka ${cell.zmianaClass}`;
       const div = document.createElement("div");
       div.className = "cell-content";
 
@@ -296,7 +301,7 @@ function buildWeekRow(weekData) {
       if (cell.typ) {
         const kodEl = document.createElement("div");
         kodEl.className = "kod";
-
+        kodEl.textContent = cell.typ;
         div.appendChild(kodEl);
       }
 
@@ -318,10 +323,10 @@ function buildWeekRow(weekData) {
       if (cell.pktAparat != null || cell.pktZadanie != null) {
         const parts = [];
         if (cell.pktAparat != null) {
-          parts.push(ap: ${cell.pktAparat});
+          parts.push(`ap: ${cell.pktAparat}`);
         }
         if (cell.pktZadanie != null) {
-          parts.push(zad: ${cell.pktZadanie});
+          parts.push(`zad: ${cell.pktZadanie}`);
         }
 
         const punktyEl = document.createElement("div");
@@ -343,6 +348,7 @@ function buildWeekRow(weekData) {
 
 function renderCalendar() {
   const calendarBody = document.getElementById("calendarBody");
+  if (!calendarBody) return;
   calendarBody.innerHTML = "";
 
   if (!calendarGenerated || !state.startCyklu) {
@@ -390,6 +396,7 @@ function renderCalendar() {
   renderMonthLabel();
   updateMonthSummary();
 }
+
 function updateMonthSummary() {
   const summaryBox = document.getElementById("monthSummaryContent");
   if (!summaryBox) return;
@@ -454,7 +461,7 @@ function updateMonthSummary() {
 
   const showPoints = !!state.pointsUnlocked; // <-- tylko gdy hasło było poprawne
 
-  let html = 
+  let html = `
     <div>Okres: <strong>${labelDate}</strong></div>
     <div class="month-summary-grid">
       <div class="month-summary-item">
@@ -485,10 +492,10 @@ function updateMonthSummary() {
         <span class="month-summary-label">Inne</span>
         <span class="month-summary-value">${counts.INNE}</span>
       </div>
-  ;
+  `;
 
   if (showPoints) {
-    html += 
+    html += `
       <div class="month-summary-item">
         <span class="month-summary-label">Pkt aparat</span>
         <span class="month-summary-value">${points.aparat}</span>
@@ -501,10 +508,10 @@ function updateMonthSummary() {
         <span class="month-summary-label">Pkt razem</span>
         <span class="month-summary-value">${totalPoints}</span>
       </div>
-    ;
+    `;
   }
 
-  html += </div>;
+  html += `</div>`;
   summaryBox.innerHTML = html;
 }
 
@@ -547,7 +554,7 @@ function showYearSummary() {
       const typ = cell.typ;
       if (typ) {
         let key = typ;
-        if (!counts.hasOwnProperty(key)) key = "INNE";
+        if (!Object.prototype.hasOwnProperty.call(counts, key)) key = "INNE";
         counts[key]++;
       }
 
@@ -560,7 +567,7 @@ function showYearSummary() {
   const totalPoints = points.aparat + points.zadanie;
 
   // generowanie HTML
-  let html = 
+  let html = `
     <div>Rok: <strong>${year}</strong></div>
     <div class="year-summary-grid">
       <div class="year-summary-item">
@@ -591,10 +598,10 @@ function showYearSummary() {
         <span class="year-summary-label">Inne</span>
         <span class="year-summary-value">${counts.INNE}</span>
       </div>
-  ;
+  `;
 
   if (showPoints) {
-    html += 
+    html += `
       <div class="year-summary-item">
         <span class="year-summary-label">Pkt aparat</span>
         <span class="year-summary-value">${points.aparat}</span>
@@ -607,14 +614,15 @@ function showYearSummary() {
         <span class="year-summary-label">Pkt razem</span>
         <span class="year-summary-value">${totalPoints}</span>
       </div>
-    ;
+    `;
   }
 
-  html += </div>;
+  html += `</div>`;
 
   // wstawienie do HTML
   const box = document.getElementById("yearSummary");
   const content = document.getElementById("yearSummaryContent");
+  if (!box || !content) return;
 
   content.innerHTML = html;
   box.style.display = "block"; // <-- pokazujemy sekcję
@@ -644,18 +652,24 @@ function openDayModal(iso, cell) {
       })
     : iso;
 
-  modalTitle.textContent = Dzień: ${dateLabel};
+  if (modalTitle) {
+    modalTitle.textContent = `Dzień: ${dateLabel}`;
+  }
   const override = state.overrides[iso] || {};
 
   // Typ dnia
-  if (override.typ) {
-    modalTyp.value = override.typ;
-  } else {
-    modalTyp.value = "";
+  if (modalTyp) {
+    if (override.typ) {
+      modalTyp.value = override.typ;
+    } else {
+      modalTyp.value = "";
+    }
   }
 
   // Notka
-  modalNotka.value = override.notka ? override.notka : "";
+  if (modalNotka) {
+    modalNotka.value = override.notka ? override.notka : "";
+  }
 
   // ---------------- PUNKTY + HASŁO ----------------
 
@@ -692,7 +706,9 @@ function openDayModal(iso, cell) {
     if (pktZInput) pktZInput.value = "";
   }
 
-  modalBackdrop.classList.add("show");
+  if (modalBackdrop) {
+    modalBackdrop.classList.add("show");
+  }
 }
 
 function unlockPointsIfPasswordCorrect() {
@@ -718,8 +734,12 @@ function unlockPointsIfPasswordCorrect() {
     pointsSection.style.display = "flex";
 
     const override = state.overrides[modalDateISO] || {};
-    pktAInput.value = override.pktAparat ?? "";
-    pktZInput.value = override.pktZadanie ?? "";
+    if (pktAInput) {
+      pktAInput.value = override.pktAparat ?? "";
+    }
+    if (pktZInput) {
+      pktZInput.value = override.pktZadanie ?? "";
+    }
 
     modalPassword.value = "";
     modalPassword.disabled = true;
@@ -727,14 +747,16 @@ function unlockPointsIfPasswordCorrect() {
     modalPassword.style.opacity = "0.5";
   } else {
     pointsSection.style.display = "none";
-    pktAInput.value = "";
-    pktZInput.value = "";
+    if (pktAInput) pktAInput.value = "";
+    if (pktZInput) pktZInput.value = "";
   }
 }
 
 function closeDayModal() {
   const modalBackdrop = document.getElementById("dayModalBackdrop");
-  modalBackdrop.classList.remove("show");
+  if (modalBackdrop) {
+    modalBackdrop.classList.remove("show");
+  }
   modalDateISO = null;
 }
 
@@ -743,8 +765,8 @@ function saveDayModal() {
   const modalTyp = document.getElementById("modalTyp");
   const modalNotka = document.getElementById("modalNotka");
 
-  const typ = modalTyp.value;
-  const notka = modalNotka.value.trim();
+  const typ = modalTyp ? modalTyp.value : "";
+  const notka = modalNotka ? modalNotka.value.trim() : "";
 
   const baseDate = parseISO(modalDateISO);
   if (!baseDate || !state.startCyklu) return;
@@ -824,14 +846,16 @@ function hideInputDaysAfterFirstGeneration() {
 
 function firstGeneration() {
   const directionSelect = document.getElementById("direction");
-  state.direction = directionSelect.value || "321";
+  if (directionSelect) {
+    state.direction = directionSelect.value || "321";
+  }
 
   const entries = [];
   for (let i = 0; i < 4; i++) {
-    const dataInput = document.getElementById(data-${i});
-    const typSelect = document.getElementById(typ-${i});
-    const data = dataInput.value;
-    const typ = typSelect.value;
+    const dataInput = document.getElementById(`data-${i}`);
+    const typSelect = document.getElementById(`typ-${i}`);
+    const data = dataInput ? dataInput.value : "";
+    const typ = typSelect ? typSelect.value : "";
     entries.push({ data, typ });
   }
 
@@ -852,8 +876,10 @@ function firstGeneration() {
   saveState();
 
   calendarGenerated = true;
-  document.getElementById("calendarSection").style.display = "block";
-  document.getElementById("emptyInfo").style.display = "none";
+  const calendarSection = document.getElementById("calendarSection");
+  const emptyInfo = document.getElementById("emptyInfo");
+  if (calendarSection) calendarSection.style.display = "block";
+  if (emptyInfo) emptyInfo.style.display = "none";
 
   visibleYear = today.getFullYear();
   visibleMonth = today.getMonth();
@@ -861,6 +887,7 @@ function firstGeneration() {
   hideInputDaysAfterFirstGeneration();
   renderCalendar();
 }
+
 // Pokazuje sekcję "4 znane dni" i wypełnia inputy z state.dniWejsciowe
 function showDniWejscioweInputsFromState() {
   const dniWrapper = document.getElementById("dniWejscioweWrapper");
@@ -872,12 +899,13 @@ function showDniWejscioweInputsFromState() {
 
   for (let i = 0; i < 4; i++) {
     const row = state.dniWejsciowe[i] || {};
-    const dataInput = document.getElementById(data-${i});
-    const typSelect = document.getElementById(typ-${i});
+    const dataInput = document.getElementById(`data-${i}`);
+    const typSelect = document.getElementById(`typ-${i}`);
     if (dataInput) dataInput.value = row.data || "";
     if (typSelect) typSelect.value = row.typ || "";
   }
 }
+
 function getDayDataForDate(dateObj, startDate) {
   const iso = formatDateISO(dateObj);
   const baseZmiana = pobierzZmianeDlaDaty(dateObj, startDate);
@@ -909,7 +937,7 @@ function getDayDataForDate(dateObj, startDate) {
     nazwa = "Inne";
   }
 
-  const zmianaClass = typ ? zmiana-${typ} : "";
+  const zmianaClass = typ ? `zmiana-${typ}` : "";
 
   return {
     dateObj,
@@ -982,13 +1010,15 @@ function adjustOverridesAfterRecalc() {
 
 function recalcGeneration() {
   const directionSelect = document.getElementById("direction");
-  state.direction = directionSelect.value || "321";
+  if (directionSelect) {
+    state.direction = directionSelect.value || "321";
+  }
 
   // 1) Pobieramy aktualne wartości z inputów (użytkownik mógł je zmienić)
   const entries = [];
   for (let i = 0; i < 4; i++) {
-    const dataInput = document.getElementById(data-${i});
-    const typSelect = document.getElementById(typ-${i});
+    const dataInput = document.getElementById(`data-${i}`);
+    const typSelect = document.getElementById(`typ-${i}`);
     const data = dataInput ? dataInput.value : "";
     const typ = typSelect ? typSelect.value : "";
     entries.push({ data, typ });
@@ -1014,14 +1044,16 @@ function recalcGeneration() {
   // 3) Ustawiamy nowy start cyklu
   state.startCyklu = formatDateISO(start);
 
-  // Jeśli masz funkcję korygującą override'y po przeliczeniu, możesz ją tutaj wywołać:
+  // W razie potrzeby można użyć:
   // adjustOverridesAfterRecalc();
 
   saveState();
 
   calendarGenerated = true;
-  document.getElementById("calendarSection").style.display = "block";
-  document.getElementById("emptyInfo").style.display = "none";
+  const calendarSection = document.getElementById("calendarSection");
+  const emptyInfo = document.getElementById("emptyInfo");
+  if (calendarSection) calendarSection.style.display = "block";
+  if (emptyInfo) emptyInfo.style.display = "none";
 
   renderCalendar();
 }
@@ -1030,6 +1062,7 @@ function resetGrafik() {
   localStorage.removeItem(STORAGE_KEY);
   location.reload();
 }
+
 function showUpdateBanner() {
   const banner = document.getElementById("updateBanner");
   const btn = document.getElementById("updateReloadBtn");
@@ -1055,7 +1088,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const calendarSection = document.getElementById("calendarSection");
   const emptyInfo = document.getElementById("emptyInfo");
 
-  directionSelect.value = state.direction || "321";
+  if (directionSelect) {
+    directionSelect.value = state.direction || "321";
+  }
+
   const btnYearSummary = document.getElementById("btnYearSummary");
   if (btnYearSummary) {
     btnYearSummary.addEventListener("click", showYearSummary);
@@ -1063,8 +1099,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   for (let i = 0; i < 4; i++) {
     const row = state.dniWejsciowe[i];
-    const dataInput = document.getElementById(data-${i});
-    const typSelect = document.getElementById(typ-${i});
+    const dataInput = document.getElementById(`data-${i}`);
+    const typSelect = document.getElementById(`typ-${i}`);
     if (dataInput && row && row.data) {
       dataInput.value = row.data;
     }
@@ -1075,59 +1111,76 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (state.startCyklu) {
     calendarGenerated = true;
-    calendarSection.style.display = "block";
-    emptyInfo.style.display = "none";
+    if (calendarSection) calendarSection.style.display = "block";
+    if (emptyInfo) emptyInfo.style.display = "none";
 
     hideInputDaysAfterFirstGeneration();
     renderCalendar();
   } else {
-    btnRecalc.style.display = "none";
-    dniWrapper.style.display = "block";
-    btnGeneruj.style.display = "inline-block";
+    if (btnRecalc) btnRecalc.style.display = "none";
+    if (dniWrapper) dniWrapper.style.display = "block";
+    if (btnGeneruj) btnGeneruj.style.display = "inline-block";
   }
 
-  btnGeneruj.addEventListener("click", firstGeneration);
-  btnRecalc.addEventListener("click", recalcGeneration);
-  btnReset.addEventListener("click", resetGrafik);
+  if (btnGeneruj) btnGeneruj.addEventListener("click", firstGeneration);
+  if (btnRecalc) btnRecalc.addEventListener("click", recalcGeneration);
+  if (btnReset) btnReset.addEventListener("click", resetGrafik);
+
   const modalPasswordInput = document.getElementById("modalPassword");
   if (modalPasswordInput) {
     modalPasswordInput.addEventListener("input", unlockPointsIfPasswordCorrect);
   }
 
-  document.getElementById("btnPrevMonth").addEventListener("click", () => {
-    if (visibleMonth === 0) {
-      visibleMonth = 11;
-      visibleYear -= 1;
-    } else {
-      visibleMonth -= 1;
-    }
-    renderCalendar();
-  });
+  const btnPrevMonth = document.getElementById("btnPrevMonth");
+  const btnNextMonth = document.getElementById("btnNextMonth");
 
-  document.getElementById("btnNextMonth").addEventListener("click", () => {
-    if (visibleMonth === 11) {
-      visibleMonth = 0;
-      visibleYear += 1;
-    } else {
-      visibleMonth += 1;
-    }
-    renderCalendar();
-  });
+  if (btnPrevMonth) {
+    btnPrevMonth.addEventListener("click", () => {
+      if (visibleMonth === 0) {
+        visibleMonth = 11;
+        visibleYear -= 1;
+      } else {
+        visibleMonth -= 1;
+      }
+      renderCalendar();
+    });
+  }
 
-  document
-    .getElementById("modalCloseBtn")
-    .addEventListener("click", closeDayModal);
-  document.getElementById("dayModalBackdrop").addEventListener("click", (e) => {
-    if (e.target.id === "dayModalBackdrop") {
-      closeDayModal();
-    }
-  });
-  document
-    .getElementById("modalSaveBtn")
-    .addEventListener("click", saveDayModal);
-  document
-    .getElementById("modalClearBtn")
-    .addEventListener("click", clearDayModal);
+  if (btnNextMonth) {
+    btnNextMonth.addEventListener("click", () => {
+      if (visibleMonth === 11) {
+        visibleMonth = 0;
+        visibleYear += 1;
+      } else {
+        visibleMonth += 1;
+      }
+      renderCalendar();
+    });
+  }
+
+  const modalCloseBtn = document.getElementById("modalCloseBtn");
+  if (modalCloseBtn) {
+    modalCloseBtn.addEventListener("click", closeDayModal);
+  }
+
+  const dayModalBackdrop = document.getElementById("dayModalBackdrop");
+  if (dayModalBackdrop) {
+    dayModalBackdrop.addEventListener("click", (e) => {
+      if (e.target.id === "dayModalBackdrop") {
+        closeDayModal();
+      }
+    });
+  }
+
+  const modalSaveBtn = document.getElementById("modalSaveBtn");
+  if (modalSaveBtn) {
+    modalSaveBtn.addEventListener("click", saveDayModal);
+  }
+
+  const modalClearBtn = document.getElementById("modalClearBtn");
+  if (modalClearBtn) {
+    modalClearBtn.addEventListener("click", clearDayModal);
+  }
 
   // Rejestracja SW – "fast offline-first"
   if (
@@ -1153,7 +1206,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
   // Swipe kalendarza palcem lewo/prawo
   setupCalendarSwipe();
 });
-
