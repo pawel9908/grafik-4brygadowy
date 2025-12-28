@@ -1,3 +1,6 @@
+// ---------- LOCALSTORAGE ----------
+const APP_VERSION = "25"; // lub nowsza, jaką masz
+
 // --------- CYKLE (nowa logika 3→2→1 i odwrotnie) ---------
 const CYKL_321 = [
   "N",
@@ -171,12 +174,14 @@ function pobierzZmianeDlaDaty(data, startDate) {
   };
 }
 
-// ---------- LOCALSTORAGE ----------
+
+
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      // Brak danych – ustaw domyślny state (tak jak miałeś)
+
+    // Funkcja pomocnicza – domyślne 4 dni od dziś
+    function buildDefaultDni() {
       const todayISO = formatDateISO(today);
       const d1 = formatDateISO(
         new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
@@ -187,14 +192,18 @@ function loadState() {
       const d3 = formatDateISO(
         new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3)
       );
+      return [
+        { data: todayISO, typ: "" },
+        { data: d1, typ: "" },
+        { data: d2, typ: "" },
+        { data: d3, typ: "" },
+      ];
+    }
 
+    // 1) Brak danych w localStorage – pierwsze odpalenie
+    if (!raw) {
       state = {
-        dniWejsciowe: [
-          { data: todayISO, typ: "" },
-          { data: d1, typ: "" },
-          { data: d2, typ: "" },
-          { data: d3, typ: "" },
-        ],
+        dniWejsciowe: buildDefaultDni(),
         startCyklu: null,
         overrides: {},
         direction: "321",
@@ -206,30 +215,25 @@ function loadState() {
 
     const parsed = JSON.parse(raw);
 
-    // --- TU SPRAWDZAMY WERSJĘ ---
+    // 2) ZMIANA WERSJI – czyścimy grafik, zostawiamy notatki/punkty
     if (parsed.version !== APP_VERSION) {
-      // NOWA WERSJA APLIKACJI:
-      // - czyścimy grafik (start, dni, kierunek)
-      // - zostawiamy notatki/punkty z overrides
-      // - (opcjonalnie) zostawiamy pointsUnlocked
       state = {
-        dniWejsciowe: [],
-        startCyklu: null,
-        overrides: parsed.overrides || {},
-        direction: "321", // lub parsed.direction, jeśli chcesz zachować
+        dniWejsciowe: buildDefaultDni(),       // <-- TU WAŻNE: nie [], tylko domyślne dni
+        startCyklu: null,                      // brak wyliczonego startu cyklu
+        overrides: parsed.overrides || {},     // zostają notatki/punkty
+        direction: "321",                      // możesz tu wziąć parsed.direction, jeśli chcesz
         pointsUnlocked: parsed.pointsUnlocked || false,
         version: APP_VERSION,
       };
 
-      // od razu zapisujemy w nowym formacie
       saveState();
       return;
     }
 
-    // Ta sama wersja – normalne wczytanie
+    // 3) Ta sama wersja – normalne wczytanie
     state = Object.assign(
       {
-        dniWejsciowe: [],
+        dniWejsciowe: buildDefaultDni(),
         startCyklu: null,
         overrides: {},
         direction: "321",
@@ -254,6 +258,8 @@ function saveState() {
     console.error("Błąd zapisu do localStorage", e);
   }
 }
+
+
 
 
 // ---------- SZUKANIE STARTU CYKLU ----------
@@ -1197,5 +1203,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Swipe kalendarza palcem lewo/prawo
   setupCalendarSwipe();
 });
+
 
 
