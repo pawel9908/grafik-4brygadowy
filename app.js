@@ -46,6 +46,8 @@ const OPIS_ZMIAN = {
   UW: "Uw",
   INNE: "Inne",
 };
+const STORAGE_KEY = "grafik_4brygadowy_offline_v2";
+const APP_VERSION = "2.0"; // <--- ZWIĘKSZAJ przy każdej zmianie logiki
 
 const STORAGE_KEY = "grafik_4brygadowy_offline_v2";
 // Hasło do odblokowania widoku punktów w modalu
@@ -64,6 +66,7 @@ let state = {
   overrides: {},
   direction: "321",
   pointsUnlocked: false, // <--- DODANE
+version: APP_VERSION,
 };
 
 let calendarGenerated = false;
@@ -173,6 +176,7 @@ function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
+      // Brak danych – ustaw domyślny state (tak jak miałeś)
       const todayISO = formatDateISO(today);
       const d1 = formatDateISO(
         new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
@@ -183,24 +187,54 @@ function loadState() {
       const d3 = formatDateISO(
         new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3)
       );
-      state.dniWejsciowe = [
-        { data: todayISO, typ: "" },
-        { data: d1, typ: "" },
-        { data: d2, typ: "" },
-        { data: d3, typ: "" },
-      ];
-      state.startCyklu = null;
-      state.overrides = {};
-      state.direction = "321";
+
+      state = {
+        dniWejsciowe: [
+          { data: todayISO, typ: "" },
+          { data: d1, typ: "" },
+          { data: d2, typ: "" },
+          { data: d3, typ: "" },
+        ],
+        startCyklu: null,
+        overrides: {},
+        direction: "321",
+        pointsUnlocked: false,
+        version: APP_VERSION,
+      };
       return;
     }
+
     const parsed = JSON.parse(raw);
+
+    // --- TU SPRAWDZAMY WERSJĘ ---
+    if (parsed.version !== APP_VERSION) {
+      // NOWA WERSJA APLIKACJI:
+      // - czyścimy grafik (start, dni, kierunek)
+      // - zostawiamy notatki/punkty z overrides
+      // - (opcjonalnie) zostawiamy pointsUnlocked
+      state = {
+        dniWejsciowe: [],
+        startCyklu: null,
+        overrides: parsed.overrides || {},
+        direction: "321", // lub parsed.direction, jeśli chcesz zachować
+        pointsUnlocked: parsed.pointsUnlocked || false,
+        version: APP_VERSION,
+      };
+
+      // od razu zapisujemy w nowym formacie
+      saveState();
+      return;
+    }
+
+    // Ta sama wersja – normalne wczytanie
     state = Object.assign(
       {
         dniWejsciowe: [],
         startCyklu: null,
         overrides: {},
         direction: "321",
+        pointsUnlocked: false,
+        version: APP_VERSION,
       },
       parsed
     );
@@ -209,13 +243,18 @@ function loadState() {
   }
 }
 
+
 function saveState() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const toSave = Object.assign({}, state, {
+      version: APP_VERSION,
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   } catch (e) {
     console.error("Błąd zapisu do localStorage", e);
   }
 }
+
 
 // ---------- SZUKANIE STARTU CYKLU ----------
 function znajdzStartCykluZWejsciowych(entries) {
@@ -1158,4 +1197,5 @@ document.addEventListener("DOMContentLoaded", () => {
   // Swipe kalendarza palcem lewo/prawo
   setupCalendarSwipe();
 });
+
 
