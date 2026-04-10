@@ -134,7 +134,91 @@ body {
   color: #facc15;
 }
 /* RÓŻNICA – WYRAŹNA */
+/* ========== INPUTY SEKCJI WYPŁAT ========== */
 
+.salary-inputs-grid {
+  margin-top: 8px;
+  gap: 12px;
+}
+
+.salary-input-row {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.98),
+    rgba(2, 6, 23, 0.98)
+  );
+  border: 1px solid rgba(79, 70, 229, 0.22);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.75);
+}
+
+#salarySection .field label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #c7d2fe;
+  margin-bottom: 5px;
+  letter-spacing: 0.01em;
+}
+
+#salarySection .field input[type="number"] {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(75, 85, 99, 0.95);
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #020617 0%, #111827 100%);
+  color: #f8fafc;
+  font-size: 16px; /* ważne: zapobiega skakaniu/zoomowi na mobile */
+  font-weight: 600;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.08s ease,
+    background 0.18s ease;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+#salarySection .field input[type="number"]::placeholder {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+#salarySection .field input[type="number"]:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+  background: linear-gradient(135deg, #0b1120 0%, #111827 100%);
+  transform: translateY(-1px);
+}
+
+#salarySection .field input[type="number"]::-webkit-outer-spin-button,
+#salarySection .field input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+#salarySection .month-summary-content,
+#salarySection .year-summary-content {
+  margin-top: 12px;
+}
+
+/* lepszy odstęp przed wykresem */
+#salaryChart {
+  margin-top: 18px !important;
+}
+
+/* MOBILE */
+@media (max-width: 480px) {
+  .salary-input-row {
+    padding: 10px;
+  }
+
+  #salarySection .field input[type="number"] {
+    font-size: 16px; /* zostaw 16px na mobile */
+    padding: 11px 12px;
+  }
+}
 .salary-diff {
   grid-column: 1 / -1;
   margin-top: 6px;
