@@ -48,6 +48,7 @@ const OPIS_ZMIAN = {
 
 const STORAGE_KEY = "grafik_4brygadowy_offline_v2";
 const SECRET_PASSWORD = "pkt321";
+const ENABLE_SW = true;
 
 const today = new Date();
 let visibleYear = today.getFullYear();
@@ -189,6 +190,7 @@ function loadState() {
         hourlyRate: "",
         baseSalary: "",
         hoursPerShift: 8,
+        nightBonusPercent: 0,
       };
     }
   } catch (e) {
@@ -690,67 +692,79 @@ function updateSalaryYearReport() {
         ? "Podstawa"
         : "Remis";
 
+  let betterClass = "orange";
+  if (betterYearOption === "Stawka godzinowa") betterClass = "blue";
+  if (betterYearOption === "Podstawa") betterClass = "green";
+
   yearBox.innerHTML = `
-    <div><strong>Raport roczny: ${visibleYear}</strong></div>
-    <div class="year-summary-grid">
-      <div class="year-summary-item">
-        <span class="year-summary-label">Godziny w roku</span>
-        <span class="year-summary-value">${totalHours}</span>
-      </div>
+    <div class="salary-section">
+      <div class="salary-title">Raport roczny: ${visibleYear}</div>
 
-      <div class="year-summary-item">
-        <span class="year-summary-label">Godziny nocne w roku</span>
-        <span class="year-summary-value">${totalNightHours}</span>
-      </div>
+      <div class="salary-grid">
+        <div class="salary-card">
+          <span class="salary-label">Godziny w roku</span>
+          <span class="salary-value">${totalHours}</span>
+        </div>
 
-      <div class="year-summary-item">
-        <span class="year-summary-label">Godzinówka: suma bazowa</span>
-        <span class="year-summary-value">${formatMoney(totalHourlyBaseAmount)}</span>
-      </div>
+        <div class="salary-card">
+          <span class="salary-label">Godziny nocne w roku</span>
+          <span class="salary-value">${totalNightHours}</span>
+        </div>
 
-      <div class="year-summary-item">
-        <span class="year-summary-label">Godzinówka: suma dodatku nocnego</span>
-        <span class="year-summary-value">${formatMoney(totalHourlyNightBonusAmount)}</span>
-      </div>
+        <div class="salary-card">
+          <span class="salary-label">Godzinówka: suma bazowa</span>
+          <span class="salary-value blue">${formatMoney(totalHourlyBaseAmount)}</span>
+        </div>
 
-      <div class="year-summary-item">
-        <span class="year-summary-label">Godzinówka: razem</span>
-        <span class="year-summary-value">${formatMoney(totalHourlyAmount)}</span>
-      </div>
+        <div class="salary-card">
+          <span class="salary-label">Godzinówka: suma dodatku nocnego</span>
+          <span class="salary-value blue">${formatMoney(totalHourlyNightBonusAmount)}</span>
+        </div>
 
-      <div class="year-summary-item">
-        <span class="year-summary-label">Podstawa: suma podstaw</span>
-        <span class="year-summary-value">${formatMoney(totalBaseSalary)}</span>
-      </div>
+        <div class="salary-card">
+          <span class="salary-label">Godzinówka: razem</span>
+          <span class="salary-value blue">${formatMoney(totalHourlyAmount)}</span>
+        </div>
 
-      <div class="year-summary-item">
-        <span class="year-summary-label">Podstawa: suma dodatku nocnego</span>
-        <span class="year-summary-value">${formatMoney(totalBaseNightBonusAmount)}</span>
-      </div>
+        <div class="salary-card">
+          <span class="salary-label">Podstawa: suma podstaw</span>
+          <span class="salary-value green">${formatMoney(totalBaseSalary)}</span>
+        </div>
 
-      <div class="year-summary-item">
-        <span class="year-summary-label">Podstawa: razem</span>
-        <span class="year-summary-value">${formatMoney(totalBaseTotalAmount)}</span>
-      </div>
+        <div class="salary-card">
+          <span class="salary-label">Podstawa: suma dodatku nocnego</span>
+          <span class="salary-value green">${formatMoney(totalBaseNightBonusAmount)}</span>
+        </div>
 
-      <div class="year-summary-item">
-        <span class="year-summary-label">Bardziej opłaca się w skali roku</span>
-        <span class="year-summary-value">${betterYearOption}</span>
-      </div>
+        <div class="salary-card">
+          <span class="salary-label">Podstawa: razem</span>
+          <span class="salary-value green">${formatMoney(totalBaseTotalAmount)}</span>
+        </div>
 
-      <div class="year-summary-item">
-        <span class="year-summary-label">Miesiące lepsze dla godzinówki</span>
-        <span class="year-summary-value">${hourlyBetterMonths}</span>
-      </div>
+        <div class="salary-card">
+          <span class="salary-label">Miesiące lepsze dla godzinówki</span>
+          <span class="salary-value blue">${hourlyBetterMonths}</span>
+        </div>
 
-      <div class="year-summary-item">
-        <span class="year-summary-label">Miesiące lepsze dla podstawy</span>
-        <span class="year-summary-value">${baseBetterMonths}</span>
-      </div>
+        <div class="salary-card">
+          <span class="salary-label">Miesiące lepsze dla podstawy</span>
+          <span class="salary-value green">${baseBetterMonths}</span>
+        </div>
 
-      <div class="year-summary-item">
-        <span class="year-summary-label">Remis</span>
-        <span class="year-summary-value">${drawMonths}</span>
+        <div class="salary-card">
+          <span class="salary-label">Remis</span>
+          <span class="salary-value orange">${drawMonths}</span>
+        </div>
+
+        <div class="salary-diff">
+          <div style="margin-bottom: 4px;">Bardziej opłaca się w skali roku:</div>
+          <strong class="${betterClass}">${betterYearOption}</strong>
+          <div style="margin-top: 6px;">
+            Różnica: <strong>${formatMoney(
+              Math.abs(totalHourlyAmount - totalBaseTotalAmount),
+            )}</strong>
+          </div>
+        </div>
       </div>
     </div>
   `;
@@ -1840,6 +1854,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
   if (
+    ENABLE_SW &&
     "serviceWorker" in navigator &&
     (window.location.protocol === "https:" ||
       window.location.hostname === "localhost")
